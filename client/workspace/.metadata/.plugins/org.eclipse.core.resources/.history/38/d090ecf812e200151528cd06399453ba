@@ -1,0 +1,27 @@
+package client;
+
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+public class Test {
+
+	public static void main(String[] args) throws UnknownHostException, IOException {
+		int port = 2016;
+		
+		DataInputStream in;
+		PrintStream out;
+		
+		Socket s = new Socket("localhost", port);
+		
+		in = new DataInputStream(s.getInputStream());
+		out = new PrintStream(s.getOutputStream());
+		
+		out.println("OK");
+		System.out.println("FIN");
+		//s.close();
+	}
+
+}
