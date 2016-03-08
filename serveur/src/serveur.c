@@ -8,7 +8,6 @@
 #include <types_jeu.h>
 #include <tools.h>
 
-
 int main() {
   
   int sock;
@@ -24,6 +23,7 @@ int main() {
   printf("[Creation du serveur] port : %d\n", PORT);
 
   
+  pthread_create(&tmp, NULL, gestionSession, sessionDeBase);
   while(1) {
     s_client = accept(sock, (struct sockaddr *)&exp, &fromlen);
     if(s_client == -1) {

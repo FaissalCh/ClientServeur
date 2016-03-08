@@ -18,9 +18,16 @@ Session *createSession(char *nomSession, char *mdp) {
     perror("malloc");
     exit(1);
   }
+  pthread_mutex_init(&(s->mutex), NULL);
+  if(pthread_cond_init(&(s->condConnexion), NULL)) {
+    perror("pthread_cond_init");
+    exit(1);
+  }
   strncpy(s->nomSession, nomSession, T_PSEUDO);
   strncpy(s->mdp, mdp, T_PSEUDO);
   initListeJoueurs(s->liste);
+  s->nbTour = 0;
+  s->tourEnCours = 0;
   return s;
 }
 
@@ -142,10 +149,12 @@ int hash_protocole(char *req) {
 
 /* -------- Fonction sur socket -------- */
 
-void sendTo(char *buf, Joueur *j) {
-  //pthread_mutex_lock(&(j->mutex));
+void sendTo(char *buf, ListeJoueurs *liste, Joueur *j) {
+  if(liste != NULL)
+    pthread_mutex_lock(&(liste->mutex));
   write(j->socket, buf, strlen(buf));
-  //pthread_mutex_unlock(&(j->mutex));
+  if(liste != NULL)
+    pthread_mutex_unlock(&(liste->mutex));
 }
 
 void sendToAll(char *buf, ListeJoueurs *liste, Joueur *saufMoi) {
@@ -157,7 +166,7 @@ void sendToAll(char *buf, ListeJoueurs *liste, Joueur *saufMoi) {
       jTmp = jTmp->next; // jTmp sera jamais egal
       continue; 
     }
-    sendTo(buf, jTmp);
+    sendTo(buf, NULL, jTmp);
     jTmp = jTmp->next;
   }
   pthread_mutex_unlock(&(liste->mutex));

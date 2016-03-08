@@ -37,7 +37,8 @@ char *pseudoJoueur(Joueur *j);
 /* Fonction sur les socket */
 int getSocketServeur(int port);
 void *gestionClient(void *arg);
-void sendTo(char *buf, Joueur *j);
+void *gestionSession(void *arg);
+void sendTo(char *buf, ListeJoueurs *liste, Joueur *j);
 void sendToAll(char *buf, ListeJoueurs *liste, Joueur *saufMoi);
 
 #endif 

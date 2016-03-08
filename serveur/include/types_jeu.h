@@ -6,12 +6,16 @@
 #include <sys/socket.h>
 #include <string.h>
 
-/* Gestion socket */
 #define PORT 2016
-
 #define MAX_JOUEUR 30
-
 #define T_PSEUDO 124 /* renommer T_BUF */
+
+#define SCORE_OBJECTIF 30
+
+#define TEMPS_REFLEXION 5 // minutes
+#define TEMPS_ENCHERE 30 // secondes
+#define TEMPS_RESOLUTION 1 // minute
+
 
 /* Grille de 16x16 cases */
 #define X_PLATEAU 16
@@ -36,6 +40,12 @@ typedef struct _Cible {
   int y;
 } Cible;
 
+typedef struct _Mur {
+  int x;
+  int y;
+  Direction d;
+} Mur;
+
 
 typedef union _Case {
   Robot r;
@@ -49,7 +59,7 @@ typedef union _Case {
 typedef struct _Plateau {
   /* Mutex mutex; */
   Case grille[X_PLATEAU][Y_PLATEAU];
-  int nbTour;
+  Mur *murs; // tableau
   Cible cible;
 } Plateau;
 
@@ -59,7 +69,7 @@ typedef struct _Plateau {
 
 /* Structure qui definie un joueur */
 typedef struct _Joueur {
-  pthread_mutex_t mutex;
+  pthread_mutex_t mutex; // A retirer 
   char pseudo[T_PSEUDO];
   int socket;
   int actif;
@@ -74,14 +84,24 @@ typedef struct _ListeJoueurs {
   pthread_mutex_t mutex;
 } ListeJoueurs;
 
-
 /* Session pour amelioration */
 typedef struct _Session {
   int id; // Voir si utile
+  pthread_mutex_t mutex;
+
   char nomSession[T_PSEUDO];
   char mdp[T_PSEUDO];
   Plateau p;
+  int nbTour;
+  int tourEnCours;
   ListeJoueurs *liste; 
+
+  pthread_cond_t condConnexion; // signal quand connexion
+
+  // Phase reflexion
+  int tempsReflexionFini; 
+  int nbCoupsRecu; // -1 si pas de coups recu
+  pthread_cond_t condFinReflexion; ////////////
 } Session;
 
 /* Argument des threads */
@@ -89,6 +109,13 @@ typedef struct _ArgThread {
   int socket;
   Session *session;
 } ArgThread;
+
+// Pour le timer, faire un fichier a part pour timer...
+typedef struct _ArgTimer {
+  int temps;
+  pthread_cond_t *cond;
+  pthread_mutex_t *mut;
+} ArgTimer;
 
 
 

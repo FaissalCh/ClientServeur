@@ -12,7 +12,7 @@ ${OBJ}/%.o: ${SRC}/%.c
 	@$(CC) -o $@ -c $< -I${INC}
 
 # ------------ EXECUTABLE  ------------ #
-${BIN}/serveur: ${OBJ}/serveur.o ${OBJ}/gestion_client.o  ${OBJ}/tools.o
+${BIN}/serveur: ${OBJ}/serveur.o ${OBJ}/gestion_client.o  ${OBJ}/tools.o ${OBJ}/fonctions_jeu.o
 	@$(CC) -o $@ $^ -lpthread
 
 
