@@ -20,23 +20,21 @@ public class Test {
 		out = new DataOutputStream(s.getOutputStream());
 
 
-		out.writeBytes("CONNEX/Omega/\n");
+		out.writeBytes("CONNEX/Omega3/\n");
 		//System.out.println(in.readLine()+" 1");
 		//System.out.println(in.readLine()+" 2");
 		//System.out.println(in.readLine()+" 3");
-		//out.writeBytes("SORT/Omega3/\n");
-
 		while(true)
 			System.out.println(in.readLine()+" 1");
-		//		System.out.println("Fermeture client");
-		//
-		//		
-		//
-		//
-		//
-		//		in.close();
-		//		out.close();
-		//		s.close();
+//		System.out.println("Fermeture client");
+//
+//		
+//
+//
+//
+//		in.close();
+//		out.close();
+//		s.close();
 	}
 
 }

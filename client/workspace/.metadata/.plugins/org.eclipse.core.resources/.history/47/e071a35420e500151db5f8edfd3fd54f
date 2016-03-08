@@ -20,7 +20,7 @@ public class Test {
 		out = new DataOutputStream(s.getOutputStream());
 
 
-		out.writeBytes("CONNEX/Omega/\n");
+		out.writeBytes("CONNEX/Omega6/\n");
 		//System.out.println(in.readLine()+" 1");
 		//System.out.println(in.readLine()+" 2");
 		//System.out.println(in.readLine()+" 3");

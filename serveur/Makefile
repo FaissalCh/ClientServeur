@@ -12,14 +12,14 @@ ${OBJ}/%.o: ${SRC}/%.c
 	@$(CC) -o $@ -c $< -I${INC}
 
 # ------------ EXECUTABLE  ------------ #
-${BIN}/serveur: ${OBJ}/main.o ${OBJ}/serveur.o  ${OBJ}/liste_joueurs.o
+${BIN}/serveur: ${OBJ}/serveur.o ${OBJ}/gestion_client.o  ${OBJ}/tools.o
 	@$(CC) -o $@ $^ -lpthread
 
 
 # ------------ OTHERS ------------ #
 clean:
 	rm -f ${OBJ}/* ${BIN}/* 
-
+	@(cd src/;rftmp;cd ../include;rftmp)
 cleanall:
 	rm -rf ${OBJ} ${BIN} 
 	rm -f ${INC}/*~ ${SRC}/*~ *~
