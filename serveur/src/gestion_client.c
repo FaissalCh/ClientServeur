@@ -6,13 +6,13 @@
 #include <tools.h>
 #include <fonctions_jeu.h>
 
-#define TBUF 256
+#define TBUF 512
 
 Joueur *connex(int sock, ListeJoueurs *liste);
 void sort(ListeJoueurs *liste, Joueur *myJoueur);
 void trouve();
 void beActif(ListeJoueurs *l);
-void timer(int temps, pthread_cond_t *cond, pthread_mutex_t *mut);
+void timer(pthread_t *pt, int temps, int *flag, pthread_cond_t *cond, pthread_mutex_t *mut);
 void *timer_thread(void *arg);
 
 
@@ -58,7 +58,7 @@ void *gestionClient(void *argThread) {
       break;
     case 3: // TROUVE
       // Prevenir l'arbitre de la session
-      trouve();
+      trouve(session, myJoueur);
       printf("[Trouve] '%s'\n", myJoueur->pseudo);
       break;
     default:
@@ -74,6 +74,37 @@ void *gestionClient(void *argThread) {
 
   return NULL;
 }
+
+
+
+void trouve(Session *s, Joueur *myJoueur) {
+  int nbCoup;
+  char buf[TBUF];
+ 
+  pthread_mutex_lock(&(s->mutex));
+  strtok(NULL, "/"); /* Le nom */
+  nbCoup = atoi(strtok(NULL, "/"));
+  if(s->tempsReflexionFini) { // Au cas ou plrs j propose en meme temps
+    // trop tard
+    // Je sais plus quoi mettre
+  }
+  else {
+    s->tempsReflexionFini = 1;
+    s->timerOut = 0;
+    myJoueur->enchere = nbCoup;
+    if(pthread_cancel(s->timerThread)) {
+      perror("pthread_cancel");
+    }
+    sprintf(buf, "ILATROUVE/%s/%d\n", pseudoJoueur(myJoueur), nbCoup);
+    sendToAll(buf, s->liste, myJoueur);
+    sprintf(buf, "TUASTROUVE/\n");
+    sendTo(buf, s->liste, myJoueur);
+    pthread_cond_signal(&(s->condFinReflexion));
+  }
+  pthread_mutex_unlock(&(s->mutex));
+}
+
+
 
 void sort(ListeJoueurs *liste, Joueur *myJoueur) {
   char buf[TBUF];
@@ -98,11 +129,6 @@ Joueur *connex(int sock, ListeJoueurs *liste) {
 }
 
 
-void trouve() {
-  //int nbCoup;
-  strtok(NULL, "/"); /* Le nom */
-  //nbCoup = atoi(strtok(NULL, "/"));
-}
 
 void *gestionSession(void *arg) { // Mutex sur la session ?
   Session *s = (Session *)arg;
@@ -110,6 +136,8 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
   char enigme[] = "(2,3,2,5,10,9,11,0,9,1,V)";
   char *bilan;
 
+
+  // Debut du tour
   // Attente d'au moins 2 joueurs
   pthread_mutex_lock(&(s->liste->mutex));
   while(s->liste->nbJoueur < 2) 
@@ -119,19 +147,46 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
   beActif(s->liste);   // Les rendres actifs
 
 
-  printf("[News] Le tour commence avec %d joueurs\n", nbJoueurListe(s->liste));
+  printf("[GESTIONNAIRE] Le tour commence avec %d joueurs\n", nbJoueurListe(s->liste));
 
   /* ----- Phase reflexion ----- */
+  pthread_mutex_lock(&(s->mutex));
+  s->tempsReflexionFini = 0;
+  s->timerOut = 1;
+  pthread_mutex_unlock(&(s->mutex));
+    
   // Send l'enigme
   bilan = getBilanSession(s);
   sprintf(buf, "TOUR/%s/%s\n", enigme, bilan);
   free(bilan);
-  sendToAll(buf, s->liste, NULL);
-  // Attend une reponse ou fin timer 
-  timer(TEMPS_REFLEXION*60, s->condFinReflexion, s->mutex);
-  // Phase enchere 
 
-  // Phase resolution
+  printf("[GESTIONNAIRE] Debut de la phase de reflexion !!\n");
+  // att rep ou fin timer
+  sendToAll(buf, s->liste, NULL);
+  // Active le timer, faudrait le desactiver si on
+  timer(&(s->timerThread), TEMPS_REFLEXION*60, &(s->tempsReflexionFini), &(s->condFinReflexion), &(s->mutex));
+
+  // recoit une reponse avant la fin
+  pthread_mutex_lock(&(s->mutex));
+  while(!(s->tempsReflexionFini))
+    pthread_cond_wait(&(s->condFinReflexion), &(s->mutex));
+  if(s->timerOut)
+    sendToAll("FINREFLEXION/\n", s->liste, NULL);
+  pthread_mutex_unlock(&(s->mutex));
+  printf("[GESTIONNAIRE] Fin de la phase de reflexion !!\n");
+
+
+  /* ---------- Phase enchere ------------- */
+  printf("[GESTIONNAIRE] Debut de la phase d'enchere !!\n");
+  // S'endormir pendant le temps de la phase d'enchere le temps que les autres 
+  // Fassent leurs mises, pas oublier de bien initialiser la valeur d'enchere
+  // J'ai rien a faire la mettre une variabiel FinEnchere dans la struct Session
+  // Quand je wakeup je la met a false comme ca ils peuvent plus encherir, et pas
+  // zappe de proteger ak mutex bien sur apres on passe a la suite.
+  printf("[GESTIONNAIRE] Fin de la phase d'enchere !!\n");
+
+
+  /* ---------- Phase resolution ------------- */
 
 
 
@@ -147,6 +202,7 @@ void beActif(ListeJoueurs *l) {
   j = l->j;
   while(j != NULL) {
     j->actif = 1;
+    j->enchere = -1;
     j = j->next;
   }
   pthread_mutex_unlock(&(l->mutex));
@@ -158,21 +214,28 @@ void beActif(ListeJoueurs *l) {
 /* ----------- Mettre dans fichier timer.(c|h) -------------------- */
 // Signal la condition proteger par mut au bout de temps seconde
 // Faudrait detruire le thread si on se debloque avant qu'il se termine
-void timer(int temps, pthread_cond_t *cond, pthread_mutex_t *mut) {
-  ArgTimer at;
-  pthread_t tmp;
-  at.temps = temps;
-  at.cond = cond;
-  at.mut = mut;
-  pthread_create(&tmp, NULL, timer_thread, (void *)(&at));
+void timer(pthread_t *pt, int temps, int *flag, pthread_cond_t *cond, pthread_mutex_t *mut) {
+  ArgTimer *at = (ArgTimer*)malloc(sizeof(ArgTimer));
+  if(at == NULL) {
+    perror("malloc");
+    exit(1);
+  }
+  at->temps = temps;
+  at->cond = cond;
+  at->mut = mut;
+  at->flag = flag;
+  pthread_create(pt, NULL, timer_thread, (void *)(at));
 }
 
 // Signal la condition 
 void *timer_thread(void *arg) {
   ArgTimer *at = (ArgTimer *)arg;
-  sleep(at->temps); // en minut
+  sleep(at->temps); // en minute
+  pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); // Desactiver annulation
   pthread_mutex_lock(at->mut);
+  *(at->flag) = 1;
   pthread_cond_signal(at->cond);
   pthread_mutex_unlock(at->mut);
+  free(at);
   return NULL;
 }

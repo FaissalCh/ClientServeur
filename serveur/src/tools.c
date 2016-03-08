@@ -23,11 +23,16 @@ Session *createSession(char *nomSession, char *mdp) {
     perror("pthread_cond_init");
     exit(1);
   }
+  if(pthread_cond_init(&(s->condFinReflexion), NULL)) {
+    perror("pthread_cond_init");
+    exit(1); 
+  }
+
   strncpy(s->nomSession, nomSession, T_PSEUDO);
   strncpy(s->mdp, mdp, T_PSEUDO);
   initListeJoueurs(s->liste);
   s->nbTour = 0;
-  s->tourEnCours = 0;
+  //s->tourEnCours = 0;
   return s;
 }
 

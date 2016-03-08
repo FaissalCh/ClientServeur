@@ -4,6 +4,8 @@
 
 #define T_ENI 2048 // Faire petit calcul pour borner la taille
 
+
+// Mettre dans session.(c|h)
 char *getBilanSession(Session *s) {
   // Prendre mutex session
   int nbTour = s->nbTour;

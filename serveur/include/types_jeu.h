@@ -12,7 +12,7 @@
 
 #define SCORE_OBJECTIF 30
 
-#define TEMPS_REFLEXION 5 // minutes
+#define TEMPS_REFLEXION 1 // minutes
 #define TEMPS_ENCHERE 30 // secondes
 #define TEMPS_RESOLUTION 1 // minute
 
@@ -73,6 +73,7 @@ typedef struct _Joueur {
   char pseudo[T_PSEUDO];
   int socket;
   int actif;
+  int enchere;
   int score;
   struct _Joueur *next;
 } Joueur;
@@ -93,15 +94,19 @@ typedef struct _Session {
   char mdp[T_PSEUDO];
   Plateau p;
   int nbTour;
-  int tourEnCours;
+  //int tourEnCours; // ??
   ListeJoueurs *liste; 
 
-  pthread_cond_t condConnexion; // signal quand connexion
+
+
+  pthread_t timerThread; // peut etre l'erreur vient de la
 
   // Phase reflexion
   int tempsReflexionFini; 
-  int nbCoupsRecu; // -1 si pas de coups recu
+  int timerOut; // boolean qui dit si fin reflexion a cause du timer ou a cause reponse d'un joueur
   pthread_cond_t condFinReflexion; ////////////
+  pthread_cond_t condConnexion; // signal quand connexion
+
 } Session;
 
 /* Argument des threads */
@@ -113,6 +118,7 @@ typedef struct _ArgThread {
 // Pour le timer, faire un fichier a part pour timer...
 typedef struct _ArgTimer {
   int temps;
+  int *flag;
   pthread_cond_t *cond;
   pthread_mutex_t *mut;
 } ArgTimer;

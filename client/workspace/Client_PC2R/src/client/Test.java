@@ -19,13 +19,15 @@ public class Test {
 		in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		out = new DataOutputStream(s.getOutputStream());
 
+		String pseudo = "Omega";
+		out.writeBytes("CONNEX/"+pseudo+"/\n");
 
-		out.writeBytes("CONNEX/Omega4/\n");
-		//System.out.println(in.readLine()+" 1");
-		//System.out.println(in.readLine()+" 2");
-		//System.out.println(in.readLine()+" 3");
-		//out.writeBytes("SORT/Omega3/\n");
 
+		if(pseudo == "Omega2") {
+			Thread.sleep(6000);
+			out.writeBytes("TROUVE/moi/4\n");
+		}
+		
 		while(true) {
 			System.out.println(in.readLine());
 		}
