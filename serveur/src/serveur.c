@@ -19,7 +19,7 @@ int main() {
   Session *sessionDeBase;
 
   sock = getSocketServeur(PORT);
-  sessionDeBase = createSession("Session_1", "");
+  sessionDeBase = createSession("Session_1", ""); // Dans create session choisir un plateau aleatoire et mettre les enigmes dedans ....
   printf("[Creation du serveur] port : %d\n", PORT);
 
   

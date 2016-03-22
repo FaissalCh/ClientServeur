@@ -15,10 +15,12 @@
 void phaseResolution(Session *s, Joueur *jActif);
 Joueur *getNewJoueurActif(Session *s);
 
+
+// La session va contenir un plateau et un tableau d'enigme
 void *gestionSession(void *arg) { // Mutex sur la session ?
   Session *s = (Session *)arg;
   char buf[TBUF];
-  char enigme[] = "(2,3,2,5,10,9,11,0,9,1,V)";
+  char enigme[] = "(2,3,2,5,10,9,11,0,9,1,V)"; // getEnigme s->enigme[nbTour % nbEnigme]
   char *bilan;
   Joueur *joueurActif;
 

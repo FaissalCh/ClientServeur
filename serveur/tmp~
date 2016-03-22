@@ -1,1 +1,0 @@
-  fgets(buf, T_BUF, f);

@@ -10,15 +10,15 @@ Deplacements *getDeplacements(char *sol);
 
 Robot getRobot(Plateau *plateau, Couleur col);
 Couleur getCol(char c);
-Couleur getDir(char d);
+Direction getDir(char d);
 
 void deplacement(Plateau *p, Deplacement *d, Robot *r);
 
 Plateau *getPlateau(int nb);
 
-
+int getNbMurs(char *murs);
 Mur *getMurs(char *c, int *nb);
 void setCible(char *c, Cible *cible);
-void setRobots(char *c, Robot *robots);
+Robot *getRobots(char *c);
 
 #endif 
