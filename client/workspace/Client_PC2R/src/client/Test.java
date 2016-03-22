@@ -13,24 +13,33 @@ public class Test {
 		int port = 2016;
 		BufferedReader in;
 		DataOutputStream out;
+		Thread t;
 		Socket s;
 
 		s = new Socket("localhost", port);
 		in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		out = new DataOutputStream(s.getOutputStream());
+		t = new ThreadLecture(in);
 
-		String pseudo = "Omega";
+		String pseudo = "Omega2";
 		out.writeBytes("CONNEX/"+pseudo+"/\n");
 
-
-		if(pseudo == "Omega2") {
-			Thread.sleep(6000);
-			out.writeBytes("TROUVE/moi/4\n");
+		// TROUVE/Omega1/5
+		// ENCHERE/Omega1/4
+		BufferedReader cons = new BufferedReader(new InputStreamReader(System.in));
+		String l;
+		t.start();
+		while((l = cons.readLine()) != null) {
+			out.writeBytes(l+"\n");
 		}
-		
-		while(true) {
-			System.out.println(in.readLine());
-		}
+		//		if(pseudo == "Omega2") {
+		//			Thread.sleep(6000);
+		//			out.writeBytes("TROUVE/moi/4\n");
+		//		}
+		//
+		//		while(true) {
+		//			System.out.println(in.readLine());
+		//		}
 		//		System.out.println("Fermeture client");
 		//
 		//		

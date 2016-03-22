@@ -1,0 +1,10 @@
+package client;
+
+public class ThreadLecture extends Thread {
+
+	private BufferedReader r;
+	
+	public ThreadLecture(BufferedReader r) {
+		this.r = r;
+	}
+}

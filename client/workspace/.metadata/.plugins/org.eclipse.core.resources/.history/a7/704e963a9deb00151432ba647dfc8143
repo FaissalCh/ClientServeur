@@ -1,0 +1,20 @@
+package client;
+
+import java.io.BufferedReader;
+
+public class ThreadLecture extends Thread {
+
+	private BufferedReader r;
+	
+	public ThreadLecture(BufferedReader r) {
+		this.r = r;
+	}
+	
+	@Override
+	public void run() {
+		String l;
+		while((l = r.readLine()) != null) {
+			System.out.println(l);
+		}
+	}
+}

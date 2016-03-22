@@ -12,15 +12,18 @@
 
 #define SCORE_OBJECTIF 30
 
-#define TEMPS_REFLEXION 1 // minutes
-#define TEMPS_ENCHERE 30 // secondes
-#define TEMPS_RESOLUTION 1 // minute
+#define TEMPS_REFLEXION 5 // minutes
+#define TEMPS_ENCHERE 30*4 // secondes
+#define TEMPS_RESOLUTION 1*60 // minute
 
 
 /* Grille de 16x16 cases */
 #define X_PLATEAU 16
 #define Y_PLATEAU 16
 
+#define NB_ROBOTS 4
+
+#define DIR_PLATEAUX "plateaux/"
 
 /* Couleurs des robots */
 typedef enum Couleur Couleur;
@@ -60,12 +63,26 @@ typedef union _Case {
 
 
 /* Structure qui definie un plateau de jeu */
+// Acces qu'en lecture
 typedef struct _Plateau {
-  /* Mutex mutex; */
-  Case grille[X_PLATEAU][Y_PLATEAU];
+  Robot robots[4];
   Mur *murs; // tableau
+  int nbMurs;
   Cible cible;
 } Plateau;
+
+
+
+typedef struct _Deplacement {
+  Couleur col;
+  Direction dir;
+} Deplacement;
+
+typedef struct _Deplacements {
+  Deplacement *tabDep; // tab
+  int nbDeplacement;
+} Deplacements;
+
 
 
 
@@ -83,12 +100,19 @@ typedef struct _Joueur {
   struct _Joueur *next;
 } Joueur;
 
+
+
+
 /* Liste des joueurs */
 typedef struct _ListeJoueurs {
   Joueur *j;
   int nbJoueur;
   pthread_mutex_t mutex;
 } ListeJoueurs;
+
+
+
+
 
 /* Session pour amelioration */
 typedef struct _Session {
@@ -98,7 +122,7 @@ typedef struct _Session {
   
   char nomSession[T_PSEUDO];
   char mdp[T_PSEUDO];
-  Plateau p;
+  Plateau *p;
   int nbTour;
   //int tourEnCours; // ??
   ListeJoueurs *liste; 
@@ -106,16 +130,27 @@ typedef struct _Session {
   Phase phase;
   int finEnchere; ////////
 
+  char deplacementCur[2056];
 
   pthread_t timerThread; // peut etre l'erreur vient de la
+
+  // Phase resolution
+  int timerResolutionFini;
+  int timerOutResolution;
+  pthread_cond_t condFinResolution; ////////////
 
   // Phase reflexion
   int tempsReflexionFini; 
   int timerOut; // boolean qui dit si fin reflexion a cause du timer ou a cause reponse d'un joueur
   pthread_cond_t condFinReflexion; ////////////
-  pthread_cond_t condConnexion; // signal quand connexion
+
+  // Connexion
+  pthread_cond_t condConnexion; // signal quand connexion, pour debuter quand au moins 2 joueurs
 
 } Session;
+
+
+
 
 /* Argument des threads */
 typedef struct _ArgThread {
