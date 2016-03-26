@@ -5,6 +5,48 @@
 #include <unistd.h>
 
 
+
+
+void affPlateau(Plateau *p) {
+  char tab[X_PLATEAU][Y_PLATEAU];
+  Enigme e = p->enigme;
+  int nbM = p->nbMurs;
+  Mur *m = p->murs;
+  Robot *r = e.robots;
+  Cible c = e.cible;
+  int i, j;
+  Direction d;
+  char tmp;
+  
+  
+  for(i=0 ; i<X_PLATEAU ; i++) {
+    for(j=0 ; j<Y_PLATEAU ; j++) {
+      tab[i][j] = '_';
+    }
+  }
+
+  for(i=0 ; i<nbM ; i++) {
+    d = m[i].d;
+    tmp = (d == H) ? 'h' : ((d == B) ? 'b' : ((d == D) ? 'd' : 'g'));
+    tab[m[i].x][m[i].y] = tmp;
+  }
+    
+  tab[c.x][c.y] = 'C';
+  tab[r[0].x][r[0].y] = 'R';
+  tab[r[1].x][r[1].y] = 'B';
+  tab[r[2].x][r[2].y] = 'J';
+  tab[r[3].x][r[3].y] = 'V';
+
+  for(i=0 ; i<X_PLATEAU ; i++) {
+    for(j=0 ; j<Y_PLATEAU ; j++) {
+      printf("%c", tab[j][i]);
+    }
+    printf("\n");
+  }
+
+}
+
+
 /* -------- Fonction de gestion de section -------- */
 
 Session *createSession(char *nomSession, char *mdp) {

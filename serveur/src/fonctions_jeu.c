@@ -1,6 +1,9 @@
 #include <tools.h>
 #include <fonctions_jeu.h>
 
+
+#include <unistd.h> // A supp
+
 #define T_ENI 2048 // Faire petit calcul pour borner la taille
 #define T_BUF 2048
 
@@ -53,10 +56,9 @@ Plateau *getPlateau(int nb) { // A free
     res->enigme.robots[i].x = robots[i].x;
     res->enigme.robots[i].y = robots[i].y;
     res->enigme.robots[i].col = robots[i].col;
+    //printf("[Col = %c, x = %d, y = %d]\n", colToChar(robots[i].col), robots[i].x, robots[i].y);
   }
   res->enigme.cible = getCible(cibleC);
-
-  
   res->plateauString = mursToString(res->murs, res->nbMurs);
   res->enigme.enigmeString = enigmeToString(&(res->enigme));
   
@@ -190,25 +192,26 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur) {
   rJ = getRobot(plateau->enigme.robots, Jaune);
   rV = getRobot(plateau->enigme.robots, Vert);
       
-
-  if(nbDeplacement != myJoueur->enchere) // Different de l'enchere
-    return 0;
+  ////////////////////////////////////////////// COM
+  if(myJoueur != NULL) ///////////////////// SUPPRIMER CE IF !!!!!!!!!!!!!!!!!!!! JUSTE POUR LE TEST
+    if(nbDeplacement > myJoueur->enchere) // Supperieur a l'enchere A DECOM !!!!!!!!
+      return 0;
   
   for(i=0 ; i<nbDeplacement ; i++) {
     d = tabDep[i];
     rTmp = (d.col == Rouge) ? rR : ( (d.col == Bleu) ? rB : ((d.col == Jaune) ? rJ : rV));
     deplacement(plateau, &d, rTmp);
+    if(rTmp->x == plateau->enigme.cible.x && rTmp->y == plateau->enigme.cible.y)
+      return 1;
   }  
   
-
-
-  int xCible = plateau->enigme.cible.x;
-  int yCible = plateau->enigme.cible.y;
-  if( (rR->x == xCible && rR->y == yCible) ||
-      (rB->x == xCible && rB->y == yCible) ||
-      (rJ->x == xCible && rJ->y == yCible) ||
-      (rV->x == xCible && rV->y == yCible) )
-    return 1;
+  /* int xCible = plateau->enigme.cible.x; */
+  /* int yCible = plateau->enigme.cible.y; */
+  /* if( (rR->x == xCible && rR->y == yCible) || */
+  /*     (rB->x == xCible && rB->y == yCible) || */
+  /*     (rJ->x == xCible && rJ->y == yCible) || */
+  /*     (rV->x == xCible && rV->y == yCible) ) */
+  /*   return 1; */
   return 0;
 }
 
@@ -217,8 +220,69 @@ void deplacement(Plateau *p, Deplacement *d, Robot *r) {
   Direction dir = d->dir;
   int *champ = (dir == H || dir == B) ? &r->y : &r->x;
   int incr = (dir == H || dir == G) ? -1 : 1;
-  while(!isObstacle(p, r->x, r->y, dir))
-    champ += incr;
+  while(!isObstacle(p, r->x, r->y, dir)) {
+    /////////////////////////////////////////
+    sleep(1);
+    system("clear");
+    printf("---------------------------\n");
+    printf("---------------------------\n");
+    affPlateau(p);
+    /////////////////////////////////////:::
+
+    // If sur la cible break !!!!!!!!!!!!!!!!!!!!!!!!!
+    if(r->x == p->enigme.cible.x && r->y == p->enigme.cible.y)
+      break;
+    *champ += incr;
+  }    
+  //////////////////////
+  sleep(1);
+  system("clear");
+  printf("---------------------------\n");
+  printf("---------------------------\n");
+  affPlateau(p);
+  /////////////////////
+}
+
+
+// Faire le symetrique aussi
+int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
+  Mur *murs;
+  int nbMurs;
+  int i;
+  int xSym, ySym;
+  Direction dSym;
+  dSym = (d == G) ? D : ((d == D) ? G : ((d == H) ? B : H)); 
+  xSym = (d == D) ? x+1 : ((d == G) ? x-1 : x);
+  ySym = (d == H) ? y-1 : ((d == B) ? y+1 : y);
+
+  // Les bords du plateau
+  if( (x == 0 && d == G) || (x == X_PLATEAU-1 && d == D) ||
+      (y == 0 && d == H) || (y == Y_PLATEAU-1 && d == B) ) {
+    return 1;
+  }
+  
+  nbMurs = p->nbMurs;
+  murs = p->murs;
+  for(i=0 ; i<nbMurs ; i++) {
+    if(murs[i].x == x && murs[i].y == y && murs[i].d == d) {
+      return 1;
+    }
+    if(murs[i].x == xSym && murs[i].y == ySym && murs[i].d == dSym) {// Verifier 
+      return 1;
+    }
+  }
+
+  // Collision avec autre robot
+  Robot *r = p->enigme.robots;
+  int newX = (d == D) ? x+1 : ((d == G) ? x-1 : x);
+  int newY = (d == H) ? y-1 : ((d == B) ? y+1 : y);
+  for(i=0 ; i<NB_ROBOTS ; i++) {
+    if( (newX == r[i].x) &&  (newY == r[i].y) ) {
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 // Verifier retourne bien copie
@@ -234,16 +298,17 @@ Robot *getRobot(Robot *robots, Couleur col) { // Faire en set
   return res;
 }
 
+
 Deplacements *getDeplacements(char *sol) { // OK ?
   char col, dir;
   int i;
   int cpt = 0;
-  int nbDep = strlen(sol);
-  Deplacement *d = (Deplacement *)malloc(nbDep*sizeof(Deplacement));
+  int nbCar = strlen(sol);
+  Deplacement *d = (Deplacement *)malloc((nbCar/2)*sizeof(Deplacement));
   Deplacements *res = (Deplacements *)malloc(sizeof(Deplacements));
   if(res == NULL) { perror("malloc");exit(0); }
 
-  for(i=0 ; i<nbDep-1 ; i+=2) {
+  for(i=0 ; i<nbCar-1 ; i+=2) {
     col = sol[i];
     dir = sol[i+1];
     if(d == NULL) { perror("malloc");exit(0); }
@@ -253,50 +318,9 @@ Deplacements *getDeplacements(char *sol) { // OK ?
   }
 
   res->tabDep = d;
-  res->nbDeplacement = nbDep;
+  res->nbDeplacement = (nbCar/2);
   return res;
 }
-
-
-
-// Faire le symetrique aussi
-int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
-  Mur *murs;
-  int nbMurs;
-  int i;
-  int xSym, ySym;
-  Direction dSym;
-  dSym = (d == G) ? D : ((d == D) ? G : ((d == H) ? B : H)); 
-  xSym = (d == D) ? x+1 : ((d == G) ? x-1 : x);
-  ySym = (d == H) ? y+1 : ((d == B) ? y-1 : y);
-
-  // Les bords du plateau
-  if( (x == 0 && d == G) || (x == X_PLATEAU-1 && d == D) ||
-      (y == 0 && d == H) || (y == Y_PLATEAU-1 && d == B) )
-    return 1;
-  
-  nbMurs = p->nbMurs;
-  murs = p->murs;
-  for(i=0 ; i<nbMurs ; i++) {
-    if(murs[i].x == x && murs[i].y == y && murs[i].d == d)
-      return 1;
-    if(murs[i].x == xSym && murs[i].y == ySym && murs[i].d == dSym) // Verifier
-      return 1;
-  }
-
-  // Colision avec autre robot
-  Robot *r = p->enigme.robots;
-  int newX = (d == D) ? x+1 : ((d == G) ? x-1 : x);
-  int newY = (d == H) ? y-1 : ((d == B) ? y+1 : y);
-  for(i=0 ; i<NB_ROBOTS ; i++) {
-    if( (newX == r[i].x) &&  (newY == r[i].y) )
-      return 1;
-  }
-
-  return 0;
-}
-
-
 
 
 // Mettre dans session.(c|h)

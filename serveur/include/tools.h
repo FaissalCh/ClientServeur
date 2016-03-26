@@ -11,6 +11,7 @@
 
 #include <types_jeu.h>
 
+void affPlateau(Plateau *p);
 
 /* Fonction de gestion de section */
 Session *createSession(char *nomSession, char *mdp);

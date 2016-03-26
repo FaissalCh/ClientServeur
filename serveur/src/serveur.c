@@ -9,6 +9,15 @@
 #include <tools.h>
 #include <fonctions_jeu.h>
 
+
+void test(Session *s) {
+  if(solutionAccepte("BBBHRDRHRD", s, NULL))
+    printf("Good\n");
+  else
+    printf("Pas good\n");
+
+}
+
 int main() {
   
   int sock;
@@ -22,6 +31,11 @@ int main() {
   sock = getSocketServeur(PORT);
   sessionDeBase = createSession("Session_1", ""); // Dans create session choisir un plateau aleatoire et mettre les enigmes dedans ....
   sessionDeBase->p = getPlateau(1);
+  //affPlateau(sessionDeBase->p);
+  test(sessionDeBase);
+
+
+
   printf("[Creation du serveur] port : %d\n", PORT);
 
   
