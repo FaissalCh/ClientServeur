@@ -55,7 +55,8 @@ void *gestionClient(void *argThread) {
       pthread_cond_signal(&(session->condConnexion)); // indique que y a 1 connexion
       pthread_mutex_unlock(&(session->liste->mutex));
       printf("[Connexion] : '%s', %d joueurs\n", myJoueur->pseudo, nbJoueurListe(listeJ));
-      char plateau[] = "(4,0,D)(9,0,D)(2,1,D)(2,1,B)(13,1,H)(13,1,D)"; // juste pour test
+      //char plateau[] = "(4,0,D)(9,0,D)(2,1,D)(2,1,B)(13,1,H)(13,1,D)"; // juste pour test
+      char *plateau = session->p->plateauString;
       sprintf(buf, "SESSION/%s/\n", plateau); // plateau provient de session normalement
       sendTo(buf, listeJ, myJoueur, 1); // Send le plateau
       break;

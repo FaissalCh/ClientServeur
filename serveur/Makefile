@@ -5,7 +5,7 @@ OBJ=obj
 SRC=src
 
 
-all: ${BIN}/test #${BIN}/serveur
+all: ${BIN}/test ${BIN}/serveur
 
 # ------------ OBJETS  ------------ #
 ${OBJ}/%.o: ${SRC}/%.c

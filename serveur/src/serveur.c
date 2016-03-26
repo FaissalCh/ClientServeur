@@ -7,6 +7,7 @@
 
 #include <types_jeu.h>
 #include <tools.h>
+#include <fonctions_jeu.h>
 
 int main() {
   
@@ -20,6 +21,7 @@ int main() {
 
   sock = getSocketServeur(PORT);
   sessionDeBase = createSession("Session_1", ""); // Dans create session choisir un plateau aleatoire et mettre les enigmes dedans ....
+  sessionDeBase->p = getPlateau(1);
   printf("[Creation du serveur] port : %d\n", PORT);
 
   

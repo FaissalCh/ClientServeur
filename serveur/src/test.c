@@ -5,7 +5,11 @@
 
 int main() {
   
-  getPlateau(1);
+  Plateau *p = getPlateau(1);
+  
+  printf("[Murs] = %s", p->plateauString);
+  printf("[Enigme] = %s", p->enigme.enigmeString);
+
 
   return 0;
 }

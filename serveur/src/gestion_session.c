@@ -20,12 +20,13 @@ Joueur *getNewJoueurActif(Session *s);
 void *gestionSession(void *arg) { // Mutex sur la session ?
   Session *s = (Session *)arg;
   char buf[TBUF];
-  char enigme[] = "(2,3,2,5,10,9,11,0,9,1,V)"; // getEnigme s->enigme[nbTour % nbEnigme]
+  //char enigme[] = "(2,3,2,5,10,9,11,0,9,1,V)"; // getEnigme s->enigme[nbTour % nbEnigme]
+  char *enigme = s->p->enigme.enigmeString;
   char *bilan;
   Joueur *joueurActif;
 
   while(1) { // En faite tant que y a moins d'1 joueur, ou qu'un joueur atteint le score objectif
-
+    
     // Debut du tour
     /* ---------------------  Attente d'au moins 2 joueurs ------------------- */
     pthread_mutex_lock(&(s->liste->mutex));
@@ -148,7 +149,9 @@ void phaseResolution(Session *s, Joueur *jActif) {
     // Signalement aux clients de la solution propose
     sprintf(buf, "SASOLUTION/%s/%s\n", jActif->pseudo, s->deplacementCur);
     sendToAll(buf, s->liste, jActif, 0);
+    printf("[Debug] test solution\n");
     if(solutionAccepte(s->deplacementCur, s, jActif)) {
+      printf("[Debug] test solution ACCEPTE\n");
       jActif->actif = 0;
       jActif->enchere = -1;
       jActif->score++;

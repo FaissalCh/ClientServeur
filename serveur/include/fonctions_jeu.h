@@ -8,7 +8,7 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur);
 int isObstacle(Plateau *p, int x, int y, Direction d);
 Deplacements *getDeplacements(char *sol);
 
-Robot getRobot(Plateau *plateau, Couleur col);
+Robot *getRobot(Robot *robots, Couleur col);
 Couleur getCol(char c);
 Direction getDir(char d);
 

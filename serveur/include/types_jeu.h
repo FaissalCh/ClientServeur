@@ -13,7 +13,7 @@
 #define SCORE_OBJECTIF 30
 
 #define TEMPS_REFLEXION 5 // minutes
-#define TEMPS_ENCHERE 30*4 // secondes
+#define TEMPS_ENCHERE 30*2 // secondes
 #define TEMPS_RESOLUTION 1*60 // minute
 
 
@@ -63,14 +63,22 @@ typedef union _Case {
 
 
 /* Structure qui definie un plateau de jeu */
-// Acces qu'en lecture
-typedef struct _Plateau {
+typedef struct _Enigme {
+  char *enigmeString;
   Robot robots[4];
+  Cible cible;
+} Enigme;
+
+typedef struct _Plateau {
+  char *plateauString;
   Mur *murs; // tableau
   int nbMurs;
-  Cible cible;
+  Enigme enigme;
+  
+  int nbEnigme;
+  //Enigme *tabEnigme;
+  //int curEnigme;
 } Plateau;
-
 
 
 typedef struct _Deplacement {

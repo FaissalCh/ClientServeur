@@ -4,10 +4,17 @@
 #define T_ENI 2048 // Faire petit calcul pour borner la taille
 #define T_BUF 2048
 
+// Peut etre faire getPlateau.c
 char *nextVirgule(char *c);
 Couleur numToCol(int i);
+char directionToChar(Direction d);
+Cible getCible(char *c);
+char colToChar(Couleur c);
+char *mursToString(Mur *murs, int nbMurs);
+char *enigmeToString(Enigme *e);
 
-Plateau *getPlateau(int nb) {
+
+Plateau *getPlateau(int nb) { // A free
   char buf[T_BUF];
   int i;
   int nbEnigme;
@@ -30,6 +37,7 @@ Plateau *getPlateau(int nb) {
   mursC[strlen(mursC)-1] = '\0';
   fgets(buf, T_BUF, f);
   nbEnigme = atoi(buf);
+  // Faut aussi charger toutes les enigmes dans un tableau
   fgets(buf, T_BUF, f);
   robotsC = strdup(buf);
   robotsC[strlen(robotsC)-1] = '\0';
@@ -38,21 +46,60 @@ Plateau *getPlateau(int nb) {
   cibleC[strlen(cibleC)-1] = '\0';
   fclose(f);
 
+  res->nbEnigme = nbEnigme;  
   res->murs = getMurs(mursC, &(res->nbMurs));
-  setCible(cibleC, &(res->cible));
   robots = getRobots(robotsC);
   for(i=0 ; i<NB_ROBOTS ; i++) {
-    res->robots[i].x = robots[i].x;
-    res->robots[i].y = robots[i].y;
-    res->robots[i].col = robots[i].col;
+    res->enigme.robots[i].x = robots[i].x;
+    res->enigme.robots[i].y = robots[i].y;
+    res->enigme.robots[i].col = robots[i].col;
   }
+  res->enigme.cible = getCible(cibleC);
 
-
+  
+  res->plateauString = mursToString(res->murs, res->nbMurs);
+  res->enigme.enigmeString = enigmeToString(&(res->enigme));
+  
   free(robots);
   return res;
 }
 
-Mur *getMurs(char *c, int *nb) { // FAUX !!!
+char *enigmeToString(Enigme *e) {
+  char col = 'R'; ///////////////////////////////////////////////// ?????????????????????,
+  char *res = malloc(sizeof(char)*NB_ROBOTS*5+NB_ROBOTS*sizeof(char)*10); // Bcp au cas ou
+  if(res == NULL) {
+    perror("malloc");
+    exit(0);
+  }
+  Robot *rR, *rB, *rJ, *rV;
+  rR = getRobot(e->robots, Rouge);
+  rB = getRobot(e->robots, Bleu);
+  rJ = getRobot(e->robots, Jaune);
+  rV = getRobot(e->robots, Vert);
+  
+  sprintf(res, "(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%c)", rR->x, rR->y, rB->x, rB->y, rJ->x, rJ->y, rV->x, rV->y, e->cible.x, e->cible.y, col);
+ 
+  return res;
+}
+
+char *mursToString(Mur *murs, int nbMurs) { // A free
+  int i;
+  char buf[T_BUF];
+  char *res = malloc(sizeof(char)*nbMurs*5+nbMurs*sizeof(char)*10); // Bcp au cas ou
+  if(res == NULL) {
+    perror("malloc");
+    exit(0);
+  }
+  res[0]='\0'; 
+  for(i=0 ; i<nbMurs ; i++) {
+    sprintf(buf, "(%d,%d,%c)", murs[i].x, murs[i].y, directionToChar(murs[i].d));
+    strcat(res, buf);
+  }
+  return res;
+}
+
+
+Mur *getMurs(char *c, int *nb) { // A free
   int i;
   *nb = getNbMurs(c);
   Mur *tabMur = (Mur *)malloc(*nb * sizeof(Mur));
@@ -67,10 +114,19 @@ Mur *getMurs(char *c, int *nb) { // FAUX !!!
     c = nextVirgule(c);
     tabMur[i].d = getDir(*c);
     c = nextVirgule(c);
-   }
+  }
   return tabMur;
 }
 
+
+
+Cible getCible(char *c) {// Faux
+  Cible cible;
+  cible.x = atoi(c); 
+  c = nextVirgule(c);
+  cible.y = atoi(c);
+  return cible;
+}
 void setCible(char *c, Cible *cible) {// Faux
   cible->x = atoi(c); 
   c = nextVirgule(c);
@@ -95,10 +151,10 @@ Couleur numToCol(int i) {
   if(i == 0)
     return Rouge;
   if(i == 1)
-    return Jaune;
+    return Bleu;
   if(i == 2)
-    return Vert;
-  return Bleu;
+    return Jaune;
+  return Vert;
 }
 
 char *nextVirgule(char *c) {
@@ -126,13 +182,13 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur) {
   Deplacement *tabDep = dep->tabDep;
   int nbDeplacement = dep->nbDeplacement;
   int i;
-  Robot rR, rB, rJ, rV; 
+  Robot *rR, *rB, *rJ, *rV; 
   Robot *rTmp;
 
-  rR = getRobot(plateau, Rouge);
-  rB = getRobot(plateau, Bleu);
-  rJ = getRobot(plateau, Jaune);
-  rV = getRobot(plateau, Vert);
+  rR = getRobot(plateau->enigme.robots, Rouge);
+  rB = getRobot(plateau->enigme.robots, Bleu);
+  rJ = getRobot(plateau->enigme.robots, Jaune);
+  rV = getRobot(plateau->enigme.robots, Vert);
       
 
   if(nbDeplacement != myJoueur->enchere) // Different de l'enchere
@@ -140,18 +196,18 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur) {
   
   for(i=0 ; i<nbDeplacement ; i++) {
     d = tabDep[i];
-    rTmp = (d.col == Rouge) ? &rR : ( (d.col == Bleu) ? &rB : ((d.col == Jaune) ? &rJ : &rV));
+    rTmp = (d.col == Rouge) ? rR : ( (d.col == Bleu) ? rB : ((d.col == Jaune) ? rJ : rV));
     deplacement(plateau, &d, rTmp);
   }  
   
 
-  // Faire le symetrique aussi
-  int xCible = plateau->cible.x;
-  int yCible = plateau->cible.y;
-  if( (rR.x == xCible && rR.y == yCible) ||
-      (rB.x == xCible && rB.y == yCible) ||
-      (rJ.x == xCible && rJ.y == yCible) ||
-      (rV.x == xCible && rV.y == yCible) )
+
+  int xCible = plateau->enigme.cible.x;
+  int yCible = plateau->enigme.cible.y;
+  if( (rR->x == xCible && rR->y == yCible) ||
+      (rB->x == xCible && rB->y == yCible) ||
+      (rJ->x == xCible && rJ->y == yCible) ||
+      (rV->x == xCible && rV->y == yCible) )
     return 1;
   return 0;
 }
@@ -166,12 +222,12 @@ void deplacement(Plateau *p, Deplacement *d, Robot *r) {
 }
 
 // Verifier retourne bien copie
-Robot getRobot(Plateau *plateau, Couleur col) { // Faire en set
+Robot *getRobot(Robot *robots, Couleur col) { // Faire en set
   int i;
-  Robot res;
+  Robot *res;
   for(i=0 ; i<NB_ROBOTS ; i++) {
-    if(plateau->robots[i].col == col) {
-      res = plateau->robots[i];
+    if(robots[i].col == col) {
+      res = &(robots[i]);
       break;
     }
   }
@@ -203,23 +259,33 @@ Deplacements *getDeplacements(char *sol) { // OK ?
 
 
 
-
+// Faire le symetrique aussi
 int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
   Mur *murs;
   int nbMurs;
   int i;
+  int xSym, ySym;
+  Direction dSym;
+  dSym = (d == G) ? D : ((d == D) ? G : ((d == H) ? B : H)); 
+  xSym = (d == D) ? x+1 : ((d == G) ? x-1 : x);
+  ySym = (d == H) ? y+1 : ((d == B) ? y-1 : y);
 
+  // Les bords du plateau
   if( (x == 0 && d == G) || (x == X_PLATEAU-1 && d == D) ||
       (y == 0 && d == H) || (y == Y_PLATEAU-1 && d == B) )
     return 1;
   
   nbMurs = p->nbMurs;
   murs = p->murs;
-  for(i=0 ; i<nbMurs ; i++) 
+  for(i=0 ; i<nbMurs ; i++) {
     if(murs[i].x == x && murs[i].y == y && murs[i].d == d)
       return 1;
+    if(murs[i].x == xSym && murs[i].y == ySym && murs[i].d == dSym) // Verifier
+      return 1;
+  }
 
-  Robot *r = p->robots;
+  // Colision avec autre robot
+  Robot *r = p->enigme.robots;
   int newX = (d == D) ? x+1 : ((d == G) ? x-1 : x);
   int newY = (d == H) ? y-1 : ((d == B) ? y+1 : y);
   for(i=0 ; i<NB_ROBOTS ; i++) {
@@ -229,6 +295,8 @@ int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
 
   return 0;
 }
+
+
 
 
 // Mettre dans session.(c|h)
@@ -274,4 +342,46 @@ Direction getDir(char d) { // OK ?
     return D;
   else //(d == 'G')
     return G;
+}
+
+////////////////////////////////////////////////////
+char directionToChar(Direction d) { // Faut free apres
+  switch(d) {
+  case H:
+    return 'H';
+    break;
+  case B:
+    return 'B';
+    break;
+  case D:
+    return 'D';
+    break;
+  case G:
+    return 'G';
+    break;
+  default:
+    return -1;
+    break;
+  }
+}
+
+char colToChar(Couleur c) {
+  switch(c) {
+  case Rouge:
+    return 'R';
+    break;
+  case Jaune:
+    return 'J';
+    break;
+  case Bleu:
+    return 'B';
+    break;
+  case Vert:
+    return 'V';
+    break;
+  default:
+    return -1;
+    break;
+  }
+
 }
