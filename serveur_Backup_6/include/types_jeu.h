@@ -12,9 +12,8 @@
 
 #define SCORE_OBJECTIF 30
 
-#define TEMPS_ATTENTE_JOUEURS 3 // secondes
-#define TEMPS_REFLEXION 10 //5*60 // minutes
-#define TEMPS_ENCHERE 30*1 // minutes
+#define TEMPS_REFLEXION 5 // minutes
+#define TEMPS_ENCHERE 30*2 // secondes
 #define TEMPS_RESOLUTION 1*60 // minute
 
 

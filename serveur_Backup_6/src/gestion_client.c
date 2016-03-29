@@ -77,7 +77,7 @@ void *gestionClient(void *argThread) {
 	resolution(session, myJoueur);
       }
       else {
-	printf("WHAT not reflexion or resolution... bad client...\n");
+	printf("WHAT not reflexion or resolution...\n");
 	exit(1); /////////////// A supp
       }
       printf("[Trouve] '%s'\n", myJoueur->pseudo);
@@ -151,13 +151,11 @@ void enchere(Session *s, Joueur *myJoueur) {
   pthread_mutex_lock(&(s->mutex));
 
   if(s->phase != ENCHERE) { // Pas encore la phase d'enchere
-    printf("Doucement la phase d'enchere a pas commence ...., gestion_client[%d]\n", __LINE__);
     sprintf(buf, "ECHEC/%s/\n", myJoueur->pseudo);
     sendTo(buf, s->liste, myJoueur, 0);
     pthread_mutex_unlock(&(s->mutex));
     return;
   }
-
   if((myJoueur->enchere != -1) && (nbCoups >= myJoueur->enchere)) {
     sprintf(buf, "ECHEC/%s/\n", myJoueur->pseudo);
     sendTo(buf, s->liste, myJoueur, 0);
@@ -173,7 +171,6 @@ void enchere(Session *s, Joueur *myJoueur) {
     sendTo(buf, s->liste, myJoueur, 0);
     sendToAll(buf2, s->liste, myJoueur, 0);
   }  
-
   pthread_mutex_unlock(&(s->mutex));
 }
 
@@ -181,7 +178,7 @@ void enchere(Session *s, Joueur *myJoueur) {
 char *nbCoupsDejaPropose(int nbCoups, Joueur *myJoueur, Session *s) {
   Joueur *j = (s->liste)->j;
   while(j != NULL) {
-    if( (j != myJoueur) && (j->enchere > 0) && (j->enchere == nbCoups))
+    if( (j != myJoueur) && (j->enchere == nbCoups))
       return j->pseudo;
     j = j->next;
   }
@@ -196,13 +193,11 @@ void trouve(Session *s, Joueur *myJoueur) {
   pthread_mutex_lock(&(s->mutex));
   strtok(NULL, "/"); /* Le nom */
   nbCoup = atoi(strtok(NULL, "/"));
-  if(s->tempsReflexionFini) { // Au cas ou plrs j propose en meme temps, (et que le temps de traiter un le chrono est fini je crois
-    printf("Attention : temps reflexion fini, gestion_client[%d]\n", __LINE__);
+  if(s->tempsReflexionFini) { // Au cas ou plrs j propose en meme temps
     // trop tard
     // Je sais plus quoi mettre
   }
   else {
-    printf("[NBCOUP] = %d, gestion_client[%d]\n", nbCoup, __LINE__);
     s->tempsReflexionFini = 1;
     s->timerOut = 0;
     myJoueur->enchere = nbCoup;

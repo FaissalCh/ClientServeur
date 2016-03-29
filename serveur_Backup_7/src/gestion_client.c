@@ -77,7 +77,7 @@ void *gestionClient(void *argThread) {
 	resolution(session, myJoueur);
       }
       else {
-	printf("WHAT not reflexion or resolution... bad client...\n");
+	printf("WHAT not reflexion or resolution...\n");
 	exit(1); /////////////// A supp
       }
       printf("[Trouve] '%s'\n", myJoueur->pseudo);

@@ -115,7 +115,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
 
 
 // Si client send reponse notifier le thread gestion_session
-void phaseResolution(Session *s, Joueur *jActif) { // Recursive
+void phaseResolution(Session *s, Joueur *jActif) {
   char buf[TBUF];
 
   pthread_mutex_lock(&(s->mutex));  
@@ -287,14 +287,12 @@ Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere m
     }
     cur = cur->next;
   }
-  if(jActif == NULL) { // Aucune enchere
-    printf("JActif == NULL, gestion_session[%d]\n", __LINE__); // A supp
-    sprintf(buf, "FINENCHERE//0/\n"); // Parfois me renvois n'importe quoi
+  if(jActif == NULL) { // Auncune enchere
+    printf("JActif == NULL, gestion_session[%d]\n", __LINE__);
+    return NULL;
   }
-  else {
-    jActif->actif = 1; // Verfier si on le remet bien a 0 plus tard
-    sprintf(buf, "FINENCHERE/%s/%d/\n", jActif->pseudo, jActif->enchere); // Parfois me renvois n'importe quoi
-  }
+  jActif->actif = 1; // Verfier si on le remet bien a 0 plus tard
+  sprintf(buf, "FINENCHERE/%s/%d/\n", jActif->pseudo, jActif->enchere); // Parfois me renvois n'importe quoi
   s->timerResolutionFini = 0; // Certainement doublon
   sendToAll(buf, s->liste, NULL, 0);
   pthread_mutex_unlock(&(s->liste->mutex));

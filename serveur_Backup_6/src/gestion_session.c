@@ -20,22 +20,20 @@ Joueur *getNewJoueurActif(Session *s);
 void *gestionSession(void *arg) { // Mutex sur la session ?
   Session *s = (Session *)arg;
   char buf[TBUF];
-  // getEnigme s->enigme[nbTour % nbEnigme]
+  //char enigme[] = "(2,3,2,5,10,9,11,0,9,1,V)"; // getEnigme s->enigme[nbTour % nbEnigme]
   char *enigme = s->p->enigme.enigmeString;
   char *bilan;
   Joueur *joueurActif;
 
   while(1) { // En faite tant que y a moins d'1 joueur, ou qu'un joueur atteint le score objectif
-    // Verifier si un joueur a le score objectif
-
-
+    
     // Debut du tour
     /* ---------------------  Attente d'au moins 2 joueurs ------------------- */
     pthread_mutex_lock(&(s->liste->mutex));
     while(s->liste->nbJoueur < 2) 
       pthread_cond_wait(&(s->condConnexion), &(s->liste->mutex));
     pthread_mutex_unlock(&(s->liste->mutex));
-    sleep(TEMPS_ATTENTE_JOUEURS); // On laisse un peu de temps aux autres d'arriver
+    sleep(5); // On laisse un peu de temps aux autres d'arriver
     beActif(s->liste);   // Les rendres actifs
 
 
@@ -62,7 +60,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
     // att rep ou fin timer
     sendToAll(buf, s->liste, NULL, 1);
     // Active le timer, faudrait le desactiver si on recoit une reponse avant la fin !!!
-    timer(&(s->timerThread), TEMPS_REFLEXION, &(s->tempsReflexionFini), &(s->condFinReflexion), &(s->mutex));
+    timer(&(s->timerThread), TEMPS_REFLEXION*60, &(s->tempsReflexionFini), &(s->condFinReflexion), &(s->mutex));
 
     // recoit une reponse avant la fin ou fin timer (si reponse recu avant timer => gestion dans fonction trouve()
     pthread_mutex_lock(&(s->mutex));
@@ -115,17 +113,10 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
 
 
 // Si client send reponse notifier le thread gestion_session
-void phaseResolution(Session *s, Joueur *jActif) { // Recursive
+void phaseResolution(Session *s, Joueur *jActif) {
   char buf[TBUF];
 
-  pthread_mutex_lock(&(s->mutex));  
-
-  if(jActif == NULL) { // A TESTER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEW
-    sprintf(buf, "FINRESO/\n");
-    sendToAll(buf, s->liste, NULL, 1);
-    pthread_mutex_unlock(&(s->mutex));
-    return;
-  }
+  pthread_mutex_lock(&(s->mutex));
   
   // Attente d'une reponse ou fin timer
   s->timerResolutionFini = 0;
@@ -162,13 +153,12 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
     if(solutionAccepte(s->deplacementCur, s, jActif)) {
       printf("[Debug] test solution ACCEPTE\n");
       jActif->actif = 0;
-      jActif->enchere = -1;// Peut etre pas ici !!!!!!!, mais au debut du tour !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      jActif->enchere = -1;
       jActif->score++;
       sprintf(buf, "BONNE\n");
       sendToAll(buf, s->liste, NULL, 0);
       pthread_mutex_unlock(&(s->mutex));
     } else { // Mauvaise solution
-      printf("[Debug] test solution REJETE\n");
       jActif->actif = 0;
       jActif->enchere = -1;
       jActif = getNewJoueurActif(s);
@@ -259,9 +249,6 @@ void initEnchere(Session *s) {
   pthread_mutex_unlock(&(s->mutex));
 }
 
-
-// Apparament parfois retourne le mauvais joueur
-// Gerer cas ou joueurs a pas fait d'enchere
 Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere minimal
   Joueur *jActif = NULL;
   int resMin = -1;
@@ -274,7 +261,7 @@ Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere m
   pthread_mutex_unlock(&(s->liste->mutex));
   cur = (s->liste)->j;
   while(cur != NULL) {
-    if(cur->playSessionEnCours && cur->enchere > 0) {
+    if(cur->playSessionEnCours) {
       if(resMin == -1) {
 	resMin = cur->enchere;
 	jActif = cur;
@@ -287,14 +274,8 @@ Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere m
     }
     cur = cur->next;
   }
-  if(jActif == NULL) { // Aucune enchere
-    printf("JActif == NULL, gestion_session[%d]\n", __LINE__); // A supp
-    sprintf(buf, "FINENCHERE//0/\n"); // Parfois me renvois n'importe quoi
-  }
-  else {
-    jActif->actif = 1; // Verfier si on le remet bien a 0 plus tard
-    sprintf(buf, "FINENCHERE/%s/%d/\n", jActif->pseudo, jActif->enchere); // Parfois me renvois n'importe quoi
-  }
+  jActif->actif = 1;
+  sprintf(buf, "FINENCHERE/%s/%d/\n", jActif->pseudo, jActif->enchere);
   s->timerResolutionFini = 0; // Certainement doublon
   sendToAll(buf, s->liste, NULL, 0);
   pthread_mutex_unlock(&(s->liste->mutex));
@@ -311,7 +292,7 @@ void beActif(ListeJoueurs *l) {
   pthread_mutex_lock(&(l->mutex));
   j = l->j;
   while(j != NULL) {
-    j->playSessionEnCours = 1; // Peut etre le remettre a 0 a la fin d'un tour
+    j->playSessionEnCours = 1;
     j->enchere = -1;
     j = j->next;
   }

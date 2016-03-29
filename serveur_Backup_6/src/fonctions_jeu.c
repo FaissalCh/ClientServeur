@@ -222,11 +222,11 @@ void deplacement(Plateau *p, Deplacement *d, Robot *r) {
   int incr = (dir == H || dir == G) ? -1 : 1;
   while(!isObstacle(p, r->x, r->y, dir)) {
     /////////////////////////////////////////
-    /* sleep(1); */
-    /* system("clear"); */
-    /* printf("---------------------------\n"); */
-    /* printf("---------------------------\n"); */
-    /* affPlateau(p); */
+    sleep(1);
+    system("clear");
+    printf("---------------------------\n");
+    printf("---------------------------\n");
+    affPlateau(p);
     /////////////////////////////////////:::
 
     // If sur la cible break !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -235,11 +235,11 @@ void deplacement(Plateau *p, Deplacement *d, Robot *r) {
     *champ += incr;
   }    
   //////////////////////
-  /* sleep(1); */
-  /* system("clear"); */
-  /* printf("---------------------------\n"); */
-  /* printf("---------------------------\n"); */
-  /* affPlateau(p); */
+  sleep(1);
+  system("clear");
+  printf("---------------------------\n");
+  printf("---------------------------\n");
+  affPlateau(p);
   /////////////////////
 }
 
