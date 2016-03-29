@@ -96,10 +96,6 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
     pthread_mutex_unlock(&(s->mutex));
     printf("[GESTIONNAIRE] Fin de la phase de resolution !!\n");
 
-    // Enigme suivante
-    s->p->curEnigme = (s->p->curEnigme + 1) % s->p->nbEnigme;
-    printf("[Nouvelle Enigme] %d\n", s->p->curEnigme);
-    s->p->enigme = s->p->tabEnigme[s->p->curEnigme];
   }
   return NULL;
 }

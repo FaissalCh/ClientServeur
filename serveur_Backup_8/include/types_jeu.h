@@ -10,8 +10,6 @@
 #define MAX_JOUEUR 30
 #define T_PSEUDO 124 /* renommer T_BUF */
 
-#define NB_PLATEAU 1
-
 #define SCORE_OBJECTIF 30
 
 #define TEMPS_ATTENTE_JOUEURS 3 // secondes

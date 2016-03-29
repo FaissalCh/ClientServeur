@@ -1,6 +1,5 @@
 #include <tools.h>
 #include <liste_joueurs.h>
-#include <fonctions_jeu.h>
 
 #include <pthread.h>
 #include <unistd.h>
@@ -81,11 +80,6 @@ Session *createSession(char *nomSession, char *mdp) {
   initListeJoueurs(s->liste);
   s->nbTour = 0;
   //s->tourEnCours = 0;
-
-  s->p = getPlateau( (rand() % NB_PLATEAU) + 1);
-  printf("[DEBUG_ENI 3] %d, %d\n", s->p->enigme.cible.x, s->p->enigme.cible.y);
-  printf("[DEBUG_ENI 4] %d, %d\n", s->p->tabEnigme[0].cible.x, s->p->tabEnigme[0].cible.y);
-
   return s;
 }
 

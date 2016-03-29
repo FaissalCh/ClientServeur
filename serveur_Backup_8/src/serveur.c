@@ -28,10 +28,9 @@ int main() {
   pthread_t tmp;
   Session *sessionDeBase;
 
-  srand(time(NULL)); // Pour choisir un plateau aleatoirement
   sock = getSocketServeur(PORT);
   sessionDeBase = createSession("Session_1", ""); // Dans create session choisir un plateau aleatoire et mettre les enigmes dedans ....
-  //sessionDeBase->p = getPlateau(1);
+  sessionDeBase->p = getPlateau(1);
   //affPlateau(sessionDeBase->p);
   // test(sessionDeBase);
 

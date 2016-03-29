@@ -12,9 +12,8 @@
 
 
 Plateau *getPlateau(int nb) { // A free
-  printf("Chargement du plateau %d\n", nb);
   char buf[T_BUF];
-  int i, j;
+  int i;
   int nbEnigme;
   Robot *robots;
   char *mursC, *robotsC, *cibleC;
@@ -30,52 +29,33 @@ Plateau *getPlateau(int nb) { // A free
     exit(1);
   }
 
-  // Lecture des murs
   fgets(buf, T_BUF, f);
   mursC = strdup(buf);
   mursC[strlen(mursC)-1] = '\0';
   fgets(buf, T_BUF, f);
-  res->murs = getMurs(mursC, &(res->nbMurs));
-  res->plateauString = mursToString(res->murs, res->nbMurs);
-
-  // Lecture du nombres d'enigme
   nbEnigme = atoi(buf);
-  res->nbEnigme = nbEnigme;  
-
   // Faut aussi charger toutes les enigmes dans un tableau
-  res->tabEnigme = (Enigme *)malloc(sizeof(Enigme)*nbEnigme);
-  if(res->tabEnigme == NULL) {
-    perror("malloc");
-    exit(1);
+  fgets(buf, T_BUF, f);
+  robotsC = strdup(buf);
+  robotsC[strlen(robotsC)-1] = '\0';
+  fgets(buf, T_BUF, f);
+  cibleC = strdup(buf);  
+  cibleC[strlen(cibleC)-1] = '\0';
+  fclose(f);
+
+  res->nbEnigme = nbEnigme;  
+  res->murs = getMurs(mursC, &(res->nbMurs));
+  robots = getRobots(robotsC);
+  for(i=0 ; i<NB_ROBOTS ; i++) {
+    res->enigme.robots[i].x = robots[i].x;
+    res->enigme.robots[i].y = robots[i].y;
+    res->enigme.robots[i].col = robots[i].col;
+    //printf("[Col = %c, x = %d, y = %d]\n", colToChar(robots[i].col), robots[i].x, robots[i].y);
   }
-
-  // Lecture des enigmes
-  for(j=0 ; j<nbEnigme ; j++) {
-    // Lecture des positions des robots
-    fgets(buf, T_BUF, f);
-    robotsC = strdup(buf);
-    robotsC[strlen(robotsC)-1] = '\0';
-    // Lecture position de la cible
-    fgets(buf, T_BUF, f);
-    cibleC = strdup(buf);  
-    cibleC[strlen(cibleC)-1] = '\0';
-
-    robots = getRobots(robotsC);
-    for(i=0 ; i<NB_ROBOTS ; i++) {
-      res->tabEnigme[j].robots[i].x = robots[i].x;
-      res->tabEnigme[j].robots[i].y = robots[i].y;
-      res->tabEnigme[j].robots[i].col = robots[i].col;
-    }
-    res->tabEnigme[j].cible = getCible(cibleC);
-    res->tabEnigme[j].enigmeString = enigmeToString(&(res->tabEnigme[j]));
-  }
-
-  res->curEnigme = 0;
-  res->enigme = res->tabEnigme[res->curEnigme];
-  printf("[DEBUG_ENI 1] %d, %d\n", res->enigme.cible.x, res->enigme.cible.y);
-  printf("[DEBUG_ENI 2] %d, %d\n", res->tabEnigme[0].cible.x, res->tabEnigme[0].cible.y);
-
-  fclose(f);  
+  res->enigme.cible = getCible(cibleC);
+  res->plateauString = mursToString(res->murs, res->nbMurs);
+  res->enigme.enigmeString = enigmeToString(&(res->enigme));
+  
   free(robots);
   return res;
 }
