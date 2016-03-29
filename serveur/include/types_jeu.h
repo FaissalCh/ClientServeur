@@ -159,9 +159,15 @@ typedef struct _Session {
   // Connexion
   pthread_cond_t condConnexion; // signal quand connexion, pour debuter quand au moins 2 joueurs
 
+  ///////////////////////////////
+  struct _Session *next;
 } Session;
 
-
+typedef struct _ListeSessions {
+  Session *s;
+  int nbSession;
+  pthread_mutex_t mutex;
+} ListeSession;
 
 
 /* Argument des threads */

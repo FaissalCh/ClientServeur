@@ -21,6 +21,7 @@ void enchere(Session *s, Joueur *myJoueur);
 Joueur *connex(int sock, ListeJoueurs *liste);
 void sort(ListeJoueurs *liste, Joueur *myJoueur);
 void trouve();
+void chat(Session *s, Joueur *myJoueur);
 
 
 
@@ -85,6 +86,9 @@ void *gestionClient(void *argThread) {
     case 4: // ENCHERE
       enchere(session, myJoueur);
       break;
+    case 6: // CHAT
+      chat(session, myJoueur);
+      break;
     default:
       printf("[Requete inconnue] '%s'\n", req);
     }
@@ -100,7 +104,17 @@ void *gestionClient(void *argThread) {
 }
 
 
+// CHAT/user/msg/
+void chat(Session *s, Joueur *myJoueur) {
+  char buf[TBUF];
+  char *message;
 
+  strtok(NULL, "/"); /* Le nom */
+  message = strtok(NULL, "/"); 
+  
+  sprintf(buf, "CHAT/%s/%s/\n", pseudoJoueur(myJoueur), message);
+  sendToAll(buf, s->liste, myJoueur, 1);
+}
 
 
 

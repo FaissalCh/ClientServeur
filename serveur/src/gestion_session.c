@@ -304,6 +304,8 @@ Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere m
   pthread_mutex_unlock(&(s->liste->mutex));
   pthread_mutex_unlock(&(s->mutex));
 
+
+  s->phase = RESOLUTION; // Doublon avec l'autre plus haut ==> il faut en garder qu'un je pense celui ci
   return jActif;
 }
 // Fin Enchere

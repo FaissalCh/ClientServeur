@@ -72,8 +72,6 @@ Plateau *getPlateau(int nb) { // A free
 
   res->curEnigme = 0;
   res->enigme = res->tabEnigme[res->curEnigme];
-  printf("[DEBUG_ENI 1] %d, %d\n", res->enigme.cible.x, res->enigme.cible.y);
-  printf("[DEBUG_ENI 2] %d, %d\n", res->tabEnigme[0].cible.x, res->tabEnigme[0].cible.y);
 
   fclose(f);  
   free(robots);

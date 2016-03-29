@@ -83,8 +83,6 @@ Session *createSession(char *nomSession, char *mdp) {
   //s->tourEnCours = 0;
 
   s->p = getPlateau( (rand() % NB_PLATEAU) + 1);
-  printf("[DEBUG_ENI 3] %d, %d\n", s->p->enigme.cible.x, s->p->enigme.cible.y);
-  printf("[DEBUG_ENI 4] %d, %d\n", s->p->tabEnigme[0].cible.x, s->p->tabEnigme[0].cible.y);
 
   return s;
 }
@@ -145,8 +143,8 @@ int hash_protocole(char *req) {
     return 3;
   else if(!strcmp(req, "ENCHERE")) 
     return 4;
-  //else if(!strcmp(req, "SOLUTION")) 
-  //return 5;
+  else if(!strcmp(req, "CHAT")) 
+    return 6;
   else 
     return -1;
 }
