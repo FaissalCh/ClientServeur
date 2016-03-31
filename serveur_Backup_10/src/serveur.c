@@ -19,10 +19,6 @@ void test(Session *s) {
 
 }
 
-//pour reinit la session de base si plus de joueurs
-Session *sessionDeBase; 
-pthread_mutex_t mutexSessionBase = PTHREAD_MUTEX_INITIALIZER;
-
 int main() {
   
   int sock;
@@ -30,17 +26,18 @@ int main() {
   ArgThread *argThread;
   struct sockaddr_in exp;
   socklen_t fromlen = sizeof(exp);
-  pthread_t tmp;
-  ListeSession listeSessions; // Liste des sessions privees
-  srand(time(NULL)); 
+  pthread_t tmp, tmp2;
+  Session *sessionDeBase; //pour reinit la session de base si plus de joueurs
+  ListeSession listeSessions; 
   initListeSession(&listeSessions);
+  srand(time(NULL)); // Pour choisir un plateau aleatoirement
   sock = getSocketServeur(PORT);
 
   printf("[Creation du serveur] port : %d\n", PORT);
   sessionDeBase = createSession("Session_1", "");
-  pthread_create(&tmp, NULL, gestionSession, sessionDeBase);
-  sessionDeBase->thread = tmp;
-  //addSessionListe(&listeSessions, sessionDeBase);
+  pthread_create(&tmp2, NULL, gestionSession, sessionDeBase);
+  sessionDeBase->thread = tmp2;
+  addSessionListe(&listeSessions, sessionDeBase);
 
   while(1) {
     s_client = accept(sock, (struct sockaddr *)&exp, &fromlen);
@@ -48,8 +45,14 @@ int main() {
       perror("accept");
       exit(1);
     }
-    argThread = createArgThreadClient(s_client, &listeSessions);
+    printf("[MAIN] Debug %d\n", __LINE__);
+    argThread = createArgThread(s_client, sessionDeBase, &listeSessions);
+    if(argThread == NULL)
+      printf("LOL\n");
+    printf("[MAIN] Debug %d\n", __LINE__);
+    sleep(3);
     pthread_create(&tmp, NULL, gestionClient, (void*)argThread);
+    printf("[MAIN] Debug %d\n", __LINE__);
   }
 
   close(sock);

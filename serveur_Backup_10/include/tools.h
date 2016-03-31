@@ -14,7 +14,7 @@
 void affPlateau(Plateau *p);
 
 /* Fonction de gestion de section */
-ArgThread *createArgThreadClient(int socket, ListeSession *sessions);
+ArgThread *createArgThread(int socket, Session *sessionDeBase, ListeSession *sessions);
 /* Fonction sur le protocole */
 int hash_protocole(char *req);
 

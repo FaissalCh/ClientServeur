@@ -47,13 +47,14 @@ void affPlateau(Plateau *p) {
 
 /* -------- Fonction de gestion de section -------- */
 
-ArgThread *createArgThreadClient(int socket, ListeSession *listeSessions) {
+ArgThread *createArgThread(int socket, Session *sessionDeBase, ListeSession *listeSessions) {
   ArgThread *arg = (ArgThread *)malloc(sizeof(ArgThread));
   if(arg == NULL) {
     perror("malloc");
     exit(1);
   }
   arg->socket = socket;
+  arg->sessionDeBase = sessionDeBase;
   arg->listeSession = listeSessions;
   return arg;
 }

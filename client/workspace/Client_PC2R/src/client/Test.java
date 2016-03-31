@@ -21,7 +21,7 @@ public class Test {
 		out = new DataOutputStream(s.getOutputStream());
 		t = new ThreadLecture(in);
 
-		String pseudo = "Omega3";
+		String pseudo = "Omega1";
 		out.writeBytes("CONNEXION/"+pseudo+"/\n");
 
 		// TROUVE/Omega1/5
