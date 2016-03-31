@@ -70,6 +70,7 @@ typedef struct _Enigme {
   char *enigmeString;
   Robot robots[4];
   Cible cible;
+  Couleur colRobot;
 } Enigme;
 
 typedef struct _Plateau {

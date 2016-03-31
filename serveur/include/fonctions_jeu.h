@@ -5,7 +5,7 @@
 
 char *getBilanSession(Session *s, int withLock);
 
-int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup); 
+int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup, int *nbDep); 
 void deplacement(Plateau *p, Deplacement *d, Robot *r, int *nbCoup);
 int isObstacle(Plateau *p, int x, int y, Direction d);
 
@@ -26,6 +26,7 @@ char *mursToString(Mur *murs, int nbMurs);
 Couleur numToCol(int i);
 char directionToChar(Direction d);
 char colToChar(Couleur c);
+Couleur charToCol(char c);
 
 char *nextVirgule(char *c);
 

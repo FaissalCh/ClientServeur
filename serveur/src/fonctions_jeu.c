@@ -16,8 +16,9 @@ Plateau *getPlateau(int nb) { // A free
   char buf[T_BUF];
   int i, j;
   int nbEnigme;
+  Couleur col;
   Robot *robots;
-  char *mursC, *robotsC, *cibleC;
+  char *mursC, *robotsC, *cibleC, *colRobot;
   Plateau *res = (Plateau *)malloc(sizeof(Plateau));
   if(res == NULL) {
     perror("malloc");
@@ -59,6 +60,11 @@ Plateau *getPlateau(int nb) { // A free
     fgets(buf, T_BUF, f);
     cibleC = strdup(buf);  
     cibleC[strlen(cibleC)-1] = '\0';
+    // Lecture de la couleur du robot qui doit s'arreter sur la cible
+    fgets(buf, T_BUF, f);
+    colRobot = strdup(buf);  
+    colRobot[strlen(colRobot)-1] = '\0';
+
 
     robots = getRobots(robotsC);
     for(i=0 ; i<NB_ROBOTS ; i++) {
@@ -68,6 +74,8 @@ Plateau *getPlateau(int nb) { // A free
     }
     res->tabEnigme[j].cible = getCible(cibleC);
     res->tabEnigme[j].enigmeString = enigmeToString(&(res->tabEnigme[j]));
+    col = charToCol(colRobot[0]);
+    res->tabEnigme[j].colRobot = col;
   }
 
   res->curEnigme = 0;
@@ -78,8 +86,28 @@ Plateau *getPlateau(int nb) { // A free
   return res;
 }
 
+Couleur charToCol(char c) {
+  switch(c) {
+  case 'R':
+    return Rouge;
+    break;
+  case 'B':
+    return Bleu;
+    break;
+  case 'V':
+    return Vert;
+    break;
+  case 'J':
+    return Jaune;
+    break;
+  default:
+    printf("Couleur inconnue dsl\n");
+    exit(1);
+  }
+}
+
+
 char *enigmeToString(Enigme *e) {
-  char col = 'R'; ///////////////////////////////////////////////// ?????????????????????,
   char *res = malloc(sizeof(char)*NB_ROBOTS*5+NB_ROBOTS*sizeof(char)*10); // Bcp au cas ou
   if(res == NULL) {
     perror("malloc");
@@ -91,6 +119,7 @@ char *enigmeToString(Enigme *e) {
   rJ = getRobot(e->robots, Jaune);
   rV = getRobot(e->robots, Vert);
   
+  char col = colToChar(e->colRobot);
   sprintf(res, "(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%c)", rR->x, rR->y, rB->x, rB->y, rJ->x, rJ->y, rV->x, rV->y, e->cible.x, e->cible.y, col);
  
   return res;
@@ -188,8 +217,7 @@ int getNbMurs(char *murs) {
 }
 
 
-// Verifier que modifie pas etat initial
-int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup) {
+int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup, int *nbDep) {
   Plateau *plateau = s->p;
   Deplacement d;
   Deplacements *dep = getDeplacements(sol);
@@ -200,30 +228,22 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup) {
   Robot *rTmp;
 
   *nbCoup = 0;
+  *nbDep = nbDeplacement;
   rR = getRobot(plateau->enigme.robots, Rouge);
   rB = getRobot(plateau->enigme.robots, Bleu);
   rJ = getRobot(plateau->enigme.robots, Jaune);
   rV = getRobot(plateau->enigme.robots, Vert);
       
-  ////////////////////////////////////////////// COM
-  if(nbDeplacement > myJoueur->enchere) // Supperieur a l'enchere A DECOM !!!!!!!!
+  if(nbDeplacement > myJoueur->enchere) 
     return 0;
   
   for(i=0 ; i<nbDeplacement ; i++) {
     d = tabDep[i];
     rTmp = (d.col == Rouge) ? rR : ( (d.col == Bleu) ? rB : ((d.col == Jaune) ? rJ : rV));
     deplacement(plateau, &d, rTmp, nbCoup);
-    if(rTmp->x == plateau->enigme.cible.x && rTmp->y == plateau->enigme.cible.y)
+    if(rTmp->x == plateau->enigme.cible.x && rTmp->y == plateau->enigme.cible.y && rTmp->col == plateau->enigme.colRobot)
       return 1;
   }  
-  
-  /* int xCible = plateau->enigme.cible.x; */
-  /* int yCible = plateau->enigme.cible.y; */
-  /* if( (rR->x == xCible && rR->y == yCible) || */
-  /*     (rB->x == xCible && rB->y == yCible) || */
-  /*     (rJ->x == xCible && rJ->y == yCible) || */
-  /*     (rV->x == xCible && rV->y == yCible) ) */
-  /*   return 1; */
   return 0;
 }
 
@@ -233,31 +253,14 @@ void deplacement(Plateau *p, Deplacement *d, Robot *r, int *nbCoup) {
   int *champ = (dir == H || dir == B) ? &r->y : &r->x;
   int incr = (dir == H || dir == G) ? -1 : 1;
   while(!isObstacle(p, r->x, r->y, dir)) {
-    /////////////////////////////////////////
-    /* sleep(1); */
-    /* system("clear"); */
-    /* printf("---------------------------\n"); */
-    /* printf("---------------------------\n"); */
-    /* affPlateau(p); */
-    /////////////////////////////////////:::
-
-    // If sur la cible break !!!!!!!!!!!!!!!!!!!!!!!!!
-    if(r->x == p->enigme.cible.x && r->y == p->enigme.cible.y)
+    // If bon robot sur la cible break !!!!!!!!!!!!!!!!!!!!!!!!!
+    if(r->x == p->enigme.cible.x && r->y == p->enigme.cible.y && p->enigme.colRobot == r->col)
       break;
     (*nbCoup)++;
     *champ += incr;
   }    
-  //////////////////////
-  /* sleep(1); */
-  /* system("clear"); */
-  /* printf("---------------------------\n"); */
-  /* printf("---------------------------\n"); */
-  /* affPlateau(p); */
-  /////////////////////
 }
 
-
-// Faire le symetrique aussi
 int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
   Mur *murs;
   int nbMurs;

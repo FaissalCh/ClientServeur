@@ -116,16 +116,17 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
     printf("[GESTIONNAIRE] Debut de la phase de resolution !!\n");
     pthread_mutex_lock(&(s->mutex));
     s->phase = RESOLUTION; // Peut etre le mettre avant l'envoie du message FINENCHERE
+
     pthread_mutex_unlock(&(s->mutex));
-
     phaseResolution(s, joueurActif);
-
     pthread_mutex_lock(&(s->mutex));
+
     s->phase = REFLEXION; // Deja fait apres mais pas grave
     pthread_mutex_unlock(&(s->mutex));
     printf("[GESTIONNAIRE] Fin de la phase de resolution !!\n");
 
     // Enigme suivante
+    printf("Cur enigme == %d, nbEnigme == %d\n", s->p->curEnigme, s->p->nbEnigme);
     s->p->curEnigme = (s->p->curEnigme + 1) % s->p->nbEnigme;
     printf("[Nouvelle Enigme] %d\n", s->p->curEnigme);
     s->p->enigme = s->p->tabEnigme[s->p->curEnigme];
@@ -139,11 +140,14 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
 
 
 // Si client send reponse notifier le thread gestion_session
+// Rec
 void phaseResolution(Session *s, Joueur *jActif) { // Recursive
   char buf[TBUF];
   int nbCoup;
+  int nbDep;
+  int tAff;
   pthread_mutex_lock(&(s->mutex));  
-
+  
   if(jActif == NULL) { // A TESTER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEW
     sprintf(buf, "FINRESO/\n");
     sendToAll(buf, s->liste, NULL, 1);
@@ -183,7 +187,7 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
     sprintf(buf, "SASOLUTION/%s/%s\n", jActif->pseudo, s->deplacementCur);
     //sendToAll(buf, s->liste, jActif, 0); // Sauf jActif ??
     sendToAll(buf, s->liste, NULL, 0); // Meme jActif
-    if(solutionAccepte(s->deplacementCur, s, jActif, &nbCoup)) {
+    if(solutionAccepte(s->deplacementCur, s, jActif, &nbCoup, &nbDep)) {
       jActif->actif = 0;
       jActif->enchere = -1;// Peut etre pas ici !!!!!!!, mais au debut du tour !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       jActif->score++;
@@ -191,8 +195,9 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
       sendToAll(buf, s->liste, NULL, 0);
       pthread_mutex_unlock(&(s->mutex));
       // USE NBCOUP
-      printf("NB COUP == %d\n", nbCoup);
-      sleep((nbCoup/2)+(nbCoup/10)+1); ///////////////////////////////////////////////////////// LE TEMPS DE FAIRE L'AFFICHAGE
+      tAff = (nbCoup/2)+(nbCoup/10)+nbDep;
+      printf("[Attente affichage] %d\n", tAff);
+      sleep(tAff); ///////////////////////////////////////////////////////// LE TEMPS DE FAIRE L'AFFICHAGE
     } else { // Mauvaise solution
       printf("[Debug] test solution REJETE\n");
       jActif->actif = 0;
