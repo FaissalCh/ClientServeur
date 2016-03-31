@@ -5,8 +5,8 @@
 
 char *getBilanSession(Session *s, int withLock);
 
-int solutionAccepte(char *sol, Session *s, Joueur *myJoueur); 
-void deplacement(Plateau *p, Deplacement *d, Robot *r);
+int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup); 
+void deplacement(Plateau *p, Deplacement *d, Robot *r, int *nbCoup);
 int isObstacle(Plateau *p, int x, int y, Direction d);
 
 int getNbMurs(char *murs);

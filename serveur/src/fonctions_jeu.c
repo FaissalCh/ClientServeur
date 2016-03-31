@@ -189,7 +189,7 @@ int getNbMurs(char *murs) {
 
 
 // Verifier que modifie pas etat initial
-int solutionAccepte(char *sol, Session *s, Joueur *myJoueur) {
+int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup) {
   Plateau *plateau = s->p;
   Deplacement d;
   Deplacements *dep = getDeplacements(sol);
@@ -199,20 +199,20 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur) {
   Robot *rR, *rB, *rJ, *rV; 
   Robot *rTmp;
 
+  *nbCoup = 0;
   rR = getRobot(plateau->enigme.robots, Rouge);
   rB = getRobot(plateau->enigme.robots, Bleu);
   rJ = getRobot(plateau->enigme.robots, Jaune);
   rV = getRobot(plateau->enigme.robots, Vert);
       
   ////////////////////////////////////////////// COM
-  if(myJoueur != NULL) ///////////////////// SUPPRIMER CE IF !!!!!!!!!!!!!!!!!!!! JUSTE POUR LE TEST
-    if(nbDeplacement > myJoueur->enchere) // Supperieur a l'enchere A DECOM !!!!!!!!
-      return 0;
+  if(nbDeplacement > myJoueur->enchere) // Supperieur a l'enchere A DECOM !!!!!!!!
+    return 0;
   
   for(i=0 ; i<nbDeplacement ; i++) {
     d = tabDep[i];
     rTmp = (d.col == Rouge) ? rR : ( (d.col == Bleu) ? rB : ((d.col == Jaune) ? rJ : rV));
-    deplacement(plateau, &d, rTmp);
+    deplacement(plateau, &d, rTmp, nbCoup);
     if(rTmp->x == plateau->enigme.cible.x && rTmp->y == plateau->enigme.cible.y)
       return 1;
   }  
@@ -228,7 +228,7 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur) {
 }
 
 
-void deplacement(Plateau *p, Deplacement *d, Robot *r) {
+void deplacement(Plateau *p, Deplacement *d, Robot *r, int *nbCoup) {
   Direction dir = d->dir;
   int *champ = (dir == H || dir == B) ? &r->y : &r->x;
   int incr = (dir == H || dir == G) ? -1 : 1;
@@ -244,6 +244,7 @@ void deplacement(Plateau *p, Deplacement *d, Robot *r) {
     // If sur la cible break !!!!!!!!!!!!!!!!!!!!!!!!!
     if(r->x == p->enigme.cible.x && r->y == p->enigme.cible.y)
       break;
+    (*nbCoup)++;
     *champ += incr;
   }    
   //////////////////////

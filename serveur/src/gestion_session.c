@@ -141,7 +141,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
 // Si client send reponse notifier le thread gestion_session
 void phaseResolution(Session *s, Joueur *jActif) { // Recursive
   char buf[TBUF];
-
+  int nbCoup;
   pthread_mutex_lock(&(s->mutex));  
 
   if(jActif == NULL) { // A TESTER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEW
@@ -183,13 +183,16 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
     sprintf(buf, "SASOLUTION/%s/%s\n", jActif->pseudo, s->deplacementCur);
     //sendToAll(buf, s->liste, jActif, 0); // Sauf jActif ??
     sendToAll(buf, s->liste, NULL, 0); // Meme jActif
-    if(solutionAccepte(s->deplacementCur, s, jActif)) {
+    if(solutionAccepte(s->deplacementCur, s, jActif, &nbCoup)) {
       jActif->actif = 0;
       jActif->enchere = -1;// Peut etre pas ici !!!!!!!, mais au debut du tour !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       jActif->score++;
       sprintf(buf, "BONNE\n");
       sendToAll(buf, s->liste, NULL, 0);
       pthread_mutex_unlock(&(s->mutex));
+      // USE NBCOUP
+      printf("NB COUP == %d\n", nbCoup);
+      sleep((nbCoup/2)+(nbCoup/10)+1); ///////////////////////////////////////////////////////// LE TEMPS DE FAIRE L'AFFICHAGE
     } else { // Mauvaise solution
       printf("[Debug] test solution REJETE\n");
       jActif->actif = 0;
