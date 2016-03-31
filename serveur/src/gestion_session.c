@@ -54,7 +54,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
      sprintf(buf, "VAINQUEUR/%s/\n", bilan);
      printf("%s", buf);
      free(bilan);
-     sendToAll(buf, s->liste, NULL, 0); // Sauf jActif
+     sendToAll(buf, s->liste, NULL, 0); // Sauf jActif // Ou sendToAllActif
      reinit(s); // nbTour et chaque joueur
    }
   
@@ -89,7 +89,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
 
     printf("[GESTIONNAIRE] Debut de la phase de reflexion !!\n");
     // att rep ou fin timer
-    sendToAll(buf, s->liste, NULL, 1);
+    sendToAllActif(buf, s->liste, NULL, 1);
     // Active le timer, faudrait le desactiver si on recoit une reponse avant la fin !!!
     timer(&(s->timerThread), TEMPS_REFLEXION, &(s->tempsReflexionFini), &(s->condFinReflexion), &(s->mutex));
 
@@ -98,7 +98,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
     while(!(s->tempsReflexionFini))
       pthread_cond_wait(&(s->condFinReflexion), &(s->mutex));
     if(s->timerOut)
-      sendToAll("FINREFLEXION/\n", s->liste, NULL, 1);
+      sendToAllActif("FINREFLEXION/\n", s->liste, NULL, 1);
     s->phase = ENCHERE;
     pthread_mutex_unlock(&(s->mutex));
     printf("[GESTIONNAIRE] Fin de la phase de reflexion !!\n");
@@ -150,7 +150,7 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
   
   if(jActif == NULL) { // A TESTER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEW
     sprintf(buf, "FINRESO/\n");
-    sendToAll(buf, s->liste, NULL, 1);
+    sendToAllActif(buf, s->liste, NULL, 1);
     pthread_mutex_unlock(&(s->mutex));
     return;
   }
@@ -170,14 +170,14 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
     jActif = getNewJoueurActif(s);
     if(jActif == NULL) { // Plus de joueur actif on termine le tour
       sprintf(buf, "FINRESO/\n");
-      sendToAll(buf, s->liste, NULL, 1);
+      sendToAllActif(buf, s->liste, NULL, 1);
       pthread_mutex_unlock(&(s->mutex));
     }
     else { // On choisit un autre jActif et on recommence phase reso
       jActif->actif = 1;
       sprintf(buf, "TROPLONG/%s/\n", jActif->pseudo);
       s->timerResolutionFini = 0; // Certainement doublon
-      sendToAll(buf, s->liste, NULL, 1);
+      sendToAllActif(buf, s->liste, NULL, 1);
       pthread_mutex_unlock(&(s->mutex));
       phaseResolution(s, jActif);
     }
@@ -186,13 +186,13 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
     // Signalement aux clients de la solution propose
     sprintf(buf, "SASOLUTION/%s/%s\n", jActif->pseudo, s->deplacementCur);
     //sendToAll(buf, s->liste, jActif, 0); // Sauf jActif ??
-    sendToAll(buf, s->liste, NULL, 0); // Meme jActif
+    sendToAllActif(buf, s->liste, NULL, 0); // Meme jActif
     if(solutionAccepte(s->deplacementCur, s, jActif, &nbCoup, &nbDep)) {
       jActif->actif = 0;
       jActif->enchere = -1;// Peut etre pas ici !!!!!!!, mais au debut du tour !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       jActif->score++;
       sprintf(buf, "BONNE\n");
-      sendToAll(buf, s->liste, NULL, 0);
+      sendToAllActif(buf, s->liste, NULL, 0);
       pthread_mutex_unlock(&(s->mutex));
       // USE NBCOUP
       tAff = (nbCoup/2)+(nbCoup/10)+nbDep;
@@ -206,13 +206,13 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
       // ENORME DOUBLON
       if(jActif == NULL) { // Plus de joueur actif on termine le tour
 	sprintf(buf, "FINRESO/\n");
-	sendToAll(buf, s->liste, NULL, 1);
+	sendToAllActif(buf, s->liste, NULL, 1);
 	pthread_mutex_unlock(&(s->mutex));
       } else { // On choisit un autre jActif et on recommence phase reso
 	jActif->actif = 1;
 	sprintf(buf, "MAUVAISE/%s/\n", jActif->pseudo);
 	s->timerResolutionFini = 0; // Certainement doublon
-	sendToAll(buf, s->liste, NULL, 1);
+	sendToAllActif(buf, s->liste, NULL, 1);
 	pthread_mutex_unlock(&(s->mutex));
 	phaseResolution(s, jActif);
       }
@@ -327,7 +327,7 @@ Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere m
     sprintf(buf, "FINENCHERE/%s/%d/\n", jActif->pseudo, jActif->enchere); // Parfois me renvois n'importe quoi
   }
   s->timerResolutionFini = 0; // Certainement doublon
-  sendToAll(buf, s->liste, NULL, 0);
+  sendToAllActif(buf, s->liste, NULL, 0);
   pthread_mutex_unlock(&(s->liste->mutex));
   pthread_mutex_unlock(&(s->mutex));
 

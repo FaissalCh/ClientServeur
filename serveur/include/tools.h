@@ -26,5 +26,6 @@ void *gestionClient(void *arg);
 void *gestionSession(void *arg);
 void sendTo(char *buf, ListeJoueurs *liste, Joueur *j, int withLock);
 void sendToAll(char *buf, ListeJoueurs *liste, Joueur *saufMoi, int withLock);
-
+void sendToAllActif(char *buf, ListeJoueurs *liste, Joueur *saufMoi, int withLock);
+  
 #endif 

@@ -13,7 +13,7 @@
 #define TBUF 512
 
 extern Session *sessionDeBase; //pour reinit la session de base si plus de joueurs
-extern pthread_mutex_t mutexSessionBase;
+extern pthread_mutex_t mutexSessionBase; // Vraiment utile ?
 
 void *gestionClient(void *argThread) {
   printf("GESTION CLIENT OK\n");
@@ -33,7 +33,8 @@ void *gestionClient(void *argThread) {
 
 
   while((!decoProprement) && (cpt<TBUF) && (nbRead=read(sock, &buf[cpt++], 1)) > 0) {
-    if(buf[cpt-1] != '\n') /* Lecture d'une ligne */
+    /* Lecture d'une ligne */
+    if(buf[cpt-1] != '\n') 
       continue;
     buf[cpt-1] = '\0';
     cpt = 0;
@@ -43,13 +44,12 @@ void *gestionClient(void *argThread) {
 
     switch(hash_protocole(req)) {
     case 1: /* CONNEX */
-      pthread_mutex_lock(&mutexSessionBase);
+      pthread_mutex_lock(&(sessionDeBase->mutex));
       session = sessionDeBase;
       listeJ = session->liste;
       myJoueur = connex(sock, listeJ); 
-      // Indique la connexion aux autres joueurs
-      indiquerConnexion(session, myJoueur); 
-      pthread_mutex_unlock(&mutexSessionBase);
+      indiquerConnexion(session, myJoueur); // Aux autres joueurs de la session
+      pthread_mutex_unlock(&(sessionDeBase->mutex));
       break;
     case 2: /* SORT */
       printf("[Deconnexion] '%s'\n", myJoueur->pseudo);
@@ -57,8 +57,7 @@ void *gestionClient(void *argThread) {
       decoProprement = 1;
       break;
     case 3: // SOLUTION // Reflexion ou resolution
-      // Prevenir l'arbitre de la session
-      pthread_mutex_lock(&(session->mutex));
+      pthread_mutex_lock(&(session->mutex));       
       if(session->phase == REFLEXION) {
 	pthread_mutex_unlock(&(session->mutex));
 	trouve(session, myJoueur);
@@ -81,8 +80,9 @@ void *gestionClient(void *argThread) {
       break;
     case 7: // CREERSESSION
       session = creerSession(arg->listeSession, myJoueur);
-      pthread_create(&tmp, NULL, gestionSession, session);
-      session->thread = tmp;
+      printf("[Creation Session] name = %s, mdp = %s\n", session->nomSession, session->mdp);
+      pthread_create(&tmp, NULL, gestionSession, session); // On lance le thread de gestion
+      session->thread = tmp; 
 
       listeJ = session->liste;
       myJoueur = connex(sock, listeJ); 
@@ -91,17 +91,21 @@ void *gestionClient(void *argThread) {
     case 8: // CONNEXIONPRIVEE
       nomSession = strtok(NULL, "/");
       char *mdp = strtok(NULL, "/");
+      printf("[ConnexPrivate] name = %s, mdp = %s\n", nomSession, mdp);
       session = getSession(arg->listeSession, nomSession);
       if(session == NULL) { // A verifier
+	printf("[CONNEXIONPRIVEE] Session inexistante\n");
 	sprintf(buf, "Erreur/Session inexistante/\n");
-	sendTo(buf, listeJ, myJoueur, 1); // Send le plateau
-	break;
+	write(sock, buf, strlen(buf));
+        break;
       }
       if(strcmp(mdp, session->mdp)) {
+	printf("[CONNEXIONPRIVEE] Pas le bon mdp\n");
 	sprintf(buf, "Erreur/Mauvais mot de passe/\n");
 	sendTo(buf, listeJ, myJoueur, 1); // Send le plateau
 	break;
       }
+      printf("[CONNEXIONPRIVEE] OK\n");
       listeJ = session->liste;
       myJoueur = connex(sock, listeJ); 
       indiquerConnexion(session, myJoueur);
@@ -117,7 +121,7 @@ void *gestionClient(void *argThread) {
     sort(listeJ, myJoueur);
   }
 
-  pthread_mutex_lock(&mutexSessionBase); // sert a rien peut etre
+  //pthread_mutex_lock(&mutexSessionBase); // sert a rien peut etre
   pthread_mutex_lock(&(session->mutex));
   if(session->liste->nbJoueur == 0) { // Dernier joueur de la session Faudrait un mutex global
     printf("[Dernier joueur] destruction de la session '%s'\n", session->nomSession);
@@ -126,9 +130,9 @@ void *gestionClient(void *argThread) {
       suppSessionListe(arg->listeSession, session); // Si pas la public, on la supprime de la liste des session privees
     destroy_session(session); // Voir si faut pas le mettre apres
 
-    printf("[Re-init session public]\n");
     // Si sessionDeBase on le reinitialise pour pas devoir attendre la fin du tour
     if(session == sessionDeBase) {  // Prendre le mutex de sessionDeBase ou je sais pas quoi 
+      printf("[Re-init session public]\n");
       sessionDeBase = createSession("Session_1", "");
       pthread_create(&tmp, NULL, gestionSession, sessionDeBase);
       sessionDeBase->thread = tmp;
@@ -137,10 +141,22 @@ void *gestionClient(void *argThread) {
   else {
     pthread_mutex_unlock(&(session->mutex));
   }
-  pthread_mutex_unlock(&mutexSessionBase);
+  //pthread_mutex_unlock(&mutexSessionBase);
 
   return NULL;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -258,7 +274,7 @@ void enchere(Session *s, Joueur *myJoueur) {
     sprintf(buf, "VALIDATION/\n");
     sprintf(buf2, "NOUVELLEENCHERE/%s/%d/\n", myJoueur->pseudo, nbCoups);
     sendTo(buf, s->liste, myJoueur, 0);
-    sendToAll(buf2, s->liste, myJoueur, 0);
+    sendToAllActif(buf2, s->liste, myJoueur, 0);
   }  
 
   pthread_mutex_unlock(&(s->mutex));
@@ -303,7 +319,7 @@ void trouve(Session *s, Joueur *myJoueur) {
       perror("pthread_cancel");
     }
     sprintf(buf, "ILATROUVE/%s/%d\n", pseudoJoueur(myJoueur), nbCoup);
-    sendToAll(buf, s->liste, myJoueur, 1);
+    sendToAllActif(buf, s->liste, myJoueur, 1);
     sprintf(buf, "TUASTROUVE/\n");
     sendTo(buf, s->liste, myJoueur, 1);
     pthread_cond_signal(&(s->condFinReflexion));
@@ -346,10 +362,10 @@ Session *creerSession(ListeSession *l, Joueur *myJoueur) {
     return NULL;
   
   printf("[New session] '%s'\n", nomSession);
-
   char *mdp = strtok(NULL, "/");
   if(mdp == NULL) 
     mdp = tmp;
+  printf("[mdp] '%s'\n", mdp);
 
   Session *s = createSession(nomSession, mdp);
   addSessionListe(l, s);

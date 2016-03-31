@@ -61,7 +61,7 @@ Session *getSession(ListeSession *l, char *name) {
 
   cur = l->s;
   while(cur != NULL) {
-    if(strcmp(name, cur->nomSession))
+    if(!strcmp(name, cur->nomSession))
       return cur;
     cur = cur->next;
   }
