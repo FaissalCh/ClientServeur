@@ -11,13 +11,13 @@
 #include <liste_sessions.h>
 
 
-void test(Session *s) {
-  if(solutionAccepte("BBBHRDRHRD", s, NULL))
-    printf("Good\n");
-  else
-    printf("Pas good\n");
+/* void test(Session *s) { */
+/*   if(solutionAccepte("BBBHRDRHRD", s, NULL)) */
+/*     printf("Good\n"); */
+/*   else */
+/*     printf("Pas good\n"); */
 
-}
+/* } */
 
 //pour reinit la session de base si plus de joueurs
 Session *sessionDeBase; 

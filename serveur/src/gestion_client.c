@@ -117,7 +117,7 @@ void *gestionClient(void *argThread) {
     sort(listeJ, myJoueur);
   }
 
-  pthread_mutex_lock(&mutexSessionBase); // Personne doit tenter la connexion a la session de base
+  pthread_mutex_lock(&mutexSessionBase); // sert a rien peut etre
   pthread_mutex_lock(&(session->mutex));
   if(session->liste->nbJoueur == 0) { // Dernier joueur de la session Faudrait un mutex global
     printf("[Dernier joueur] destruction de la session '%s'\n", session->nomSession);
@@ -344,6 +344,8 @@ Session *creerSession(ListeSession *l, Joueur *myJoueur) {
   char tmp[] = "";
   if(nomSession == NULL)
     return NULL;
+  
+  printf("[New session] '%s'\n", nomSession);
 
   char *mdp = strtok(NULL, "/");
   if(mdp == NULL) 
