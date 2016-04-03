@@ -10,7 +10,7 @@
 // Peut etre faire getPlateau.c
 
 
-
+// A mettre dans .h !!!!!!!!!
 Plateau *getPlateau(int nb) { // A free
   printf("Chargement du plateau %d\n", nb);
   char buf[T_BUF];

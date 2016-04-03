@@ -16,6 +16,8 @@ void timer(pthread_t *pt, int temps, int *flag, pthread_cond_t *cond, pthread_mu
   pthread_create(pt, NULL, timer_thread, (void *)(at));
 }
 
+
+// Peut etre annuler le thread si le temps un joueur a fait une requete dans gestion_session phase reflexion
 // Signal la condition 
 void *timer_thread(void *arg) {
   ArgTimer *at = (ArgTimer *)arg;

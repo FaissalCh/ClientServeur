@@ -57,12 +57,14 @@ Session *getSession(ListeSession *l, char *name) {
   Session *cur;
   if(name == NULL)
     return NULL;
-  pthread_mutex_lock(&(l->mutex));
 
+  pthread_mutex_lock(&(l->mutex));
   cur = l->s;
   while(cur != NULL) {
-    if(!strcmp(name, cur->nomSession))
+    if(!strcmp(name, cur->nomSession)) {
+      pthread_mutex_unlock(&(l->mutex));
       return cur;
+    }
     cur = cur->next;
   }
   pthread_mutex_unlock(&(l->mutex));

@@ -18,7 +18,7 @@ int joueurAScoreObjectif(Session *s) {
   // Pas de lock Le mutex est deja pose sur la liste
   ListeJoueurs *liste = s->liste;
   Joueur *cur = liste->j;
-  while(cur != NULL) {
+  while(cur != NULL) { 
     if(cur->score == SCORE_OBJECTIF)
       return 1;
     cur = cur->next;
@@ -26,6 +26,8 @@ int joueurAScoreObjectif(Session *s) {
   return 0;
 }
 
+
+// On peut peut etre aussi choisir un nouveau plateau
 void reinit(Session *s) { // Mutex de la liste deja prit
   // Peut etre pas besoin de proteger nbTour car c'est moi meme qui augument nbTour pas une var partagee
   s->nbTour = 0;

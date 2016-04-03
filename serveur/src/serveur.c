@@ -9,7 +9,8 @@
 #include <tools.h>
 #include <fonctions_jeu.h>
 #include <liste_sessions.h>
-
+#include <gestion_session.h>
+#include <gestion_client.h>
 
 /* void test(Session *s) { */
 /*   if(solutionAccepte("BBBHRDRHRD", s, NULL)) */

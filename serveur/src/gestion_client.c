@@ -121,7 +121,7 @@ void *gestionClient(void *argThread) {
     sort(listeJ, myJoueur);
   }
 
-  //pthread_mutex_lock(&mutexSessionBase); // sert a rien peut etre
+  //pthread_mutex_lock(&mutexSessionBase); // sert a rien peut etre | ==> renommer mutexDestructionSessionBase
   pthread_mutex_lock(&(session->mutex));
   if(session->liste->nbJoueur == 0) { // Dernier joueur de la session Faudrait un mutex global
     printf("[Dernier joueur] destruction de la session '%s'\n", session->nomSession);

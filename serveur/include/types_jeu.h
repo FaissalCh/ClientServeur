@@ -12,7 +12,7 @@
 
 #define NB_PLATEAU 1
 
-#define SCORE_OBJECTIF 30
+#define SCORE_OBJECTIF 2
 
 #define TEMPS_ATTENTE_JOUEURS 5 // secondes
 #define TEMPS_REFLEXION 5*60 // minutes

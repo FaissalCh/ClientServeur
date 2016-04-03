@@ -1,6 +1,8 @@
 #ifndef GESTION_CLIENT_H
 #define GESTION_CLIENT_H
 
+void *gestionClient(void *argThread);
+
 char *nbCoupsDejaPropose(int nbCoups, Joueur *myJoueur, Session *s);
 void indiquerConnexion(Session *session, Joueur *myJoueur);
 
