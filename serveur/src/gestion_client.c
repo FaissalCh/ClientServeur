@@ -13,10 +13,13 @@
 #define TBUF 512
 
 extern Session *sessionDeBase; //pour reinit la session de base si plus de joueurs
-extern pthread_mutex_t mutexSessionBase; // Vraiment utile ?
+extern pthread_mutex_t mutexSessionBase; /* Pour eviter qu'un joueur tente de se connecter a la session public 
+					    pendant qu'elle soit re-cree apres sa destruction, ceci arrive 
+					    lorsque le dernier joueur quitte la session on la re initialise
+					    pour eviter que les nouveaux joueurs attendent la fin du dernier tour
+					    alors qu'il n y a plus de joueur */
 
 void *gestionClient(void *argThread) {
-  printf("GESTION CLIENT OK\n");
   ArgThread *arg = (ArgThread *)argThread;
   int sock = arg->socket;
   Session *session = NULL;// = arg->session;
@@ -31,7 +34,6 @@ void *gestionClient(void *argThread) {
   Joueur *myJoueur = NULL; /* Joueur du thread courant */
   free(arg); 
 
-
   while((!decoProprement) && (cpt<TBUF) && (nbRead=read(sock, &buf[cpt++], 1)) > 0) {
     /* Lecture d'une ligne */
     if(buf[cpt-1] != '\n') 
@@ -44,12 +46,21 @@ void *gestionClient(void *argThread) {
 
     switch(hash_protocole(req)) {
     case 1: /* CONNEX */
+      pthread_mutex_lock(&mutexSessionBase); // Au cas ou une destruction en cours
       pthread_mutex_lock(&(sessionDeBase->mutex));
       session = sessionDeBase;
       listeJ = session->liste;
       myJoueur = connex(sock, listeJ); 
+      if(myJoueur == NULL) {
+        pthread_mutex_unlock(&(sessionDeBase->mutex));
+	pthread_mutex_unlock(&mutexSessionBase);  
+	sprintf(buf, "Erreur/Pseudo deja present/\n");
+	write(sock, buf, strlen(buf));
+	return NULL;
+      }
       indiquerConnexion(session, myJoueur); // Aux autres joueurs de la session
       pthread_mutex_unlock(&(sessionDeBase->mutex));
+      pthread_mutex_unlock(&mutexSessionBase);       
       break;
     case 2: /* SORT */
       printf("[Deconnexion] '%s'\n", myJoueur->pseudo);
@@ -68,9 +79,7 @@ void *gestionClient(void *argThread) {
       }
       else {
 	printf("WHAT not reflexion or resolution... bad client...\n"); // Client bas de gamme
-	//exit(1); /////////////// A supp
       }
-      printf("[Trouve] '%s'\n", myJoueur->pseudo);
       break;
     case 4: // ENCHERE
       enchere(session, myJoueur);
@@ -80,6 +89,11 @@ void *gestionClient(void *argThread) {
       break;
     case 7: // CREERSESSION
       session = creerSession(arg->listeSession, myJoueur);
+      if(session == NULL) {
+	sprintf(buf, "Erreur/Session deja existante/\n");
+	write(sock, buf, strlen(buf));
+	return NULL;
+      }
       printf("[Creation Session] name = %s, mdp = %s\n", session->nomSession, session->mdp);
       pthread_create(&tmp, NULL, gestionSession, session); // On lance le thread de gestion
       session->thread = tmp; 
@@ -106,9 +120,17 @@ void *gestionClient(void *argThread) {
 	break;
       }
       printf("[CONNEXIONPRIVEE] OK\n");
+      pthread_mutex_lock(&(session->mutex)); ///////////////:
       listeJ = session->liste;
       myJoueur = connex(sock, listeJ); 
+      if(myJoueur == NULL) {
+	pthread_mutex_unlock(&(session->mutex));
+	sprintf(buf, "Erreur/Pseudo deja present/\n");
+	write(sock, buf, strlen(buf));
+	return NULL;
+      }
       indiquerConnexion(session, myJoueur);
+      pthread_mutex_unlock(&(session->mutex));
       break;
     default:
       printf("[Requete inconnue] '%s'\n", req);
@@ -121,7 +143,7 @@ void *gestionClient(void *argThread) {
     sort(listeJ, myJoueur);
   }
 
-  //pthread_mutex_lock(&mutexSessionBase); // sert a rien peut etre | ==> renommer mutexDestructionSessionBase
+  pthread_mutex_lock(&mutexSessionBase); 
   pthread_mutex_lock(&(session->mutex));
   if(session->liste->nbJoueur == 0) { // Dernier joueur de la session Faudrait un mutex global
     printf("[Dernier joueur] destruction de la session '%s'\n", session->nomSession);
@@ -141,7 +163,7 @@ void *gestionClient(void *argThread) {
   else {
     pthread_mutex_unlock(&(session->mutex));
   }
-  //pthread_mutex_unlock(&mutexSessionBase);
+  pthread_mutex_unlock(&mutexSessionBase);
 
   return NULL;
 }
@@ -163,12 +185,13 @@ void *gestionClient(void *argThread) {
 
 void indiquerConnexion(Session *session, Joueur *myJoueur) {
   char buf[TBUF];
+  char *plateau;
   ListeJoueurs *listeJ = session->liste;
   pthread_mutex_lock(&(session->liste->mutex));
   pthread_cond_signal(&(session->condConnexion)); // indique que y a 1 connexion
   pthread_mutex_unlock(&(session->liste->mutex));
   printf("[Connexion] : '%s', %d joueurs\n", myJoueur->pseudo, nbJoueurListe(listeJ));
-  char *plateau = session->p->plateauString;
+  plateau = session->p->plateauString;
   sprintf(buf, "SESSION/%s/\n", plateau); // plateau provient de session normalement
   sendTo(buf, listeJ, myJoueur, 1); // Send le plateau
 }
@@ -342,7 +365,17 @@ void sort(ListeJoueurs *liste, Joueur *myJoueur) {
 /* Faudra gerer si plusieurs joueurs ont le meme nom */
 Joueur *connex(int sock, ListeJoueurs *liste) {
   char buf[TBUF];
-  Joueur *myJoueur = create_joueur(strtok(NULL, "/"), sock); 
+  char *pseudo = strtok(NULL, "/");
+
+  pthread_mutex_lock(&(liste->mutex));
+  if(pseudo_deja_present(liste, pseudo)) {
+    pthread_mutex_unlock(&(liste->mutex));
+    printf("[Pseudo deja present] %s\n", pseudo);
+    return NULL;
+  }
+  pthread_mutex_unlock(&(liste->mutex));
+
+  Joueur *myJoueur = create_joueur(pseudo, sock); 
   addJoueurListe(liste, myJoueur);
   /* Validation de la connexion a user */
   sprintf(buf, "BIENVENUE/%s/\n", pseudoJoueur(myJoueur));
@@ -360,6 +393,13 @@ Session *creerSession(ListeSession *l, Joueur *myJoueur) {
   char tmp[] = "";
   if(nomSession == NULL)
     return NULL;
+
+  pthread_mutex_lock(&(l->mutex));
+  if(session_deja_present(l, nomSession)) {
+    pthread_mutex_unlock(&(l->mutex));
+    return NULL;
+  }
+  pthread_mutex_unlock(&(l->mutex));
   
   printf("[New session] '%s'\n", nomSession);
   char *mdp = strtok(NULL, "/");

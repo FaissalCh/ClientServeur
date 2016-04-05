@@ -6,6 +6,8 @@
 
 #include <types_jeu.h>
 
+int session_deja_present(ListeSession *l, char *nom);
+
 void initListeSession(ListeSession *liste);
 void addSessionListe(ListeSession *l, Session *s);
 int suppSessionListe(ListeSession *l, Session *s);

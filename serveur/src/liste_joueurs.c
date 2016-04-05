@@ -96,3 +96,15 @@ int suppJoueurListe(ListeJoueurs *l, Joueur *j) {
   pthread_mutex_unlock(&(l->mutex));
   return ret;
 }
+
+
+// Prendre lock sur liste avant
+int pseudo_deja_present(ListeJoueurs *l, char *pseudo) {
+  Joueur *cur = l->j;
+  while(cur != NULL) {
+    if(!strcmp(pseudo, cur->pseudo)) 
+      return 1;
+    cur = cur->next;
+  }
+  return 0;
+}

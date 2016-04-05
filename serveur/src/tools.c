@@ -155,6 +155,9 @@ int getSocketServeur(int port) {
   sin.sin_port = htons(port);
   sin.sin_family = AF_INET;  
   
+  if(setsockopt(s_XTMP, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0)
+    perror("setsockopt");
+
   if(bind(s_XTMP, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
     perror("bind");
     exit(3);

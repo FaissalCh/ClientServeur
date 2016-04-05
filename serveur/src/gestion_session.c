@@ -12,8 +12,7 @@
 
 #define TBUF 512
 
-// Si les joueurs quittent pendant la phase de reflexion faudra attendre la fin avant le prochain tour, 5 min... bcp 
-
+// Fonction qui indique si une enchere est deja presente
 int joueurAScoreObjectif(Session *s) {
   // Pas de lock Le mutex est deja pose sur la liste
   ListeJoueurs *liste = s->liste;
@@ -27,9 +26,9 @@ int joueurAScoreObjectif(Session *s) {
 }
 
 
-// On peut peut etre aussi choisir un nouveau plateau
+// Peut etre choisir nouveau plateau
+// Fonction rqui réinitialise une session (nbTour = 0 et les score = 0)
 void reinit(Session *s) { // Mutex de la liste deja prit
-  // Peut etre pas besoin de proteger nbTour car c'est moi meme qui augument nbTour pas une var partagee
   s->nbTour = 0;
   Joueur *j = (s->liste)->j; 
   while(j != NULL) {
@@ -38,11 +37,11 @@ void reinit(Session *s) { // Mutex de la liste deja prit
   }
 }
 
-// La session va contenir un plateau et un tableau d'enigme
+// Fonction pour les threads de gestion de session (fonction qui gere les phases, les timers etc...)
 void *gestionSession(void *arg) { // Mutex sur la session ?
   Session *s = (Session *)arg;
   char buf[TBUF];
-  char *enigme = s->p->enigme.enigmeString;
+  char *enigme;
   char *bilan;
   Joueur *joueurActif;
   int debutSession = 1;
@@ -57,7 +56,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
      printf("%s", buf);
      free(bilan);
      sendToAll(buf, s->liste, NULL, 0); // Sauf jActif // Ou sendToAllActif
-     reinit(s); // nbTour et chaque joueur
+     reinit(s); // nbTour et chaque joueur 
    }
   
    // Debut du tour
@@ -73,7 +72,7 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
    debutSession = 0;
    printf("[GESTIONNAIRE] Le tour commence avec %d joueurs\n", nbJoueurActifListe(s->liste));
     
-   // Partie initSession
+   // Partie initialisation de la Session
     setEnchereToInit(s);
 
     /* ------------------- Phase reflexion -------------------------- */
@@ -86,16 +85,18 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
     
     // Send l'enigme
     bilan = getBilanSession(s, 1);
+    enigme = s->p->enigme.enigmeString;
     sprintf(buf, "TOUR/%s/%s\n", enigme, bilan);
     free(bilan);
 
     printf("[GESTIONNAIRE] Debut de la phase de reflexion !!\n");
-    // att rep ou fin timer
+    // attend une reponse ou la fin du timer
     sendToAllActif(buf, s->liste, NULL, 1);
-    // Active le timer, faudrait le desactiver si on recoit une reponse avant la fin !!!
+    // Active le timer (faudrait peut etre le desactiver si on recoit une reponse avant la fin !!!)
     timer(&(s->timerThread), TEMPS_REFLEXION, &(s->tempsReflexionFini), &(s->condFinReflexion), &(s->mutex));
 
-    // recoit une reponse avant la fin ou fin timer (si reponse recu avant timer => gestion dans fonction trouve()
+    // recoit une reponse avant la fin ou fin timer (si reponse recu avant timer => gestion dans fonction trouve() du thread client)
+    // (cf. gestion_client.c)
     pthread_mutex_lock(&(s->mutex));
     while(!(s->tempsReflexionFini))
       pthread_cond_wait(&(s->condFinReflexion), &(s->mutex));
@@ -109,8 +110,8 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
     /* ---------- Phase enchere ------------- */
     printf("[GESTIONNAIRE] Debut de la phase d'enchere !!\n");
     initEnchere(s);
-    sleep(TEMPS_ENCHERE); // Temps en seconde
-    joueurActif = terminerEnchere(s); // Si personne n'a fait d'enchere BOOOM !!!!!!!!!!!!!!!!!!!!!!!!!
+    sleep(TEMPS_ENCHERE); 
+    joueurActif = terminerEnchere(s); // Si personne n'a fait d'enchere vaut NULL
     printf("[GESTIONNAIRE] Fin de la phase d'enchere !!\n");
 
 
@@ -141,8 +142,8 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
 
 
 
-// Si client send reponse notifier le thread gestion_session
-// Rec
+// Si client send reponse alors notifier le thread gestion_session
+// Recursive
 void phaseResolution(Session *s, Joueur *jActif) { // Recursive
   char buf[TBUF];
   int nbCoup;
@@ -165,7 +166,6 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
     pthread_cond_wait(&(s->condFinResolution), &(s->mutex));
 
   /* Reponse recu ou fin timer */
-
   if(s->timerOut) { // Pas recu de reponse dans le temps imparti
     jActif->actif = 0;
     jActif->enchere = -1;
@@ -197,9 +197,9 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
       sendToAllActif(buf, s->liste, NULL, 0);
       pthread_mutex_unlock(&(s->mutex));
       // USE NBCOUP
-      tAff = (nbCoup/2)+(nbCoup/10)+nbDep;
+      tAff = (nbCoup/2)+(nbCoup/10)+nbDep; // Petite formule ecrite un peu au hasard pour attendre la fin de l'affichage chez le client
       printf("[Attente affichage] %d\n", tAff);
-      sleep(tAff); ///////////////////////////////////////////////////////// LE TEMPS DE FAIRE L'AFFICHAGE
+      sleep(tAff); ///////////////////////////////////////////////////////// LE TEMPS DE FAIRE L'AFFICHAGE DANS LE CLIENT
     } else { // Mauvaise solution
       printf("[Debug] test solution REJETE\n");
       jActif->actif = 0;
@@ -231,7 +231,7 @@ Joueur *getNewJoueurActif(Session *s) {
   int enchereMin;
 
   pthread_mutex_lock(&(l->mutex));
-  cur = l->j;
+  cur = l->j; // Si pas play session en cours je crois cur enchere vaut -1 mais pour etre sur vaut mieux test playSession
   while(cur != NULL) { // Peut etre tester playSessionEnCours !!!!!!!!!!!!!!!!!!!!!!! Sinon il sert peut etre a rien
     if(res == NULL && (cur->enchere > 0)) {
       res = cur;
@@ -270,11 +270,7 @@ Joueur *getNewJoueurActif(Session *s) {
 
 
 
-
-
-
-
-// Enchere
+// Initialise les valeurs des joueurs avant la phase d'enchere
 void setEnchereToInit(Session *s) {
   /* Initialise la valeur d'enchere (meme des joueurs qui jouent pas encore, mais pas grave) */
   Joueur *cur = (s->liste)->j;
@@ -285,6 +281,7 @@ void setEnchereToInit(Session *s) {
   }
 }
 
+// Initialise les valeurs indiquant dans quelles phase se trouve le jeu
 void initEnchere(Session *s) {
   pthread_mutex_lock(&(s->mutex));
   s->finEnchere = 0;
@@ -293,8 +290,8 @@ void initEnchere(Session *s) {
 }
 
 
-// Apparament parfois retourne le mauvais joueur
-// Gerer cas ou joueurs a pas fait d'enchere
+// Apparament parfois retourne le mauvais joueur (plus maintenant)
+// Gerer cas ou joueurs a pas fait d'enchere (c'est bon)
 Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere minimal
   Joueur *jActif = NULL;
   int resMin = -1;
@@ -340,7 +337,7 @@ Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere m
 // Fin Enchere
 
 
-/* Met la variable playSessionEnCours a true et pas la varible ACTIF !!*/
+/* Met la variable (des joueurs present) playSessionEnCours a true et pas la varible ACTIF !! */
 void beActif(ListeJoueurs *l) {
   Joueur *j;
   pthread_mutex_lock(&(l->mutex));

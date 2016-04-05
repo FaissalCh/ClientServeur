@@ -114,3 +114,15 @@ int suppSessionListe(ListeSession *l, Session *s) {
   pthread_mutex_unlock(&(l->mutex));
   return ret;
 }
+
+
+// Prendre lock sur liste avant
+int session_deja_present(ListeSession *l, char *nom) {
+  Session *cur = l->s;
+  while(cur != NULL) {
+    if(!strcmp(nom, cur->nomSession)) 
+      return 1;
+    cur = cur->next;
+  }
+  return 0;
+}

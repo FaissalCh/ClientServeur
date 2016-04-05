@@ -19,6 +19,6 @@ ${BIN}/serveur: ${OBJ}/serveur.o ${OBJ}/timer.o ${OBJ}/gestion_client.o ${OBJ}/g
 clean:
 	rm -f ${OBJ}/* ${BIN}/* 
 	@(cd src/;rftmp;cd ../include;rftmp)
-cleanall:
-	rm -rf ${OBJ} ${BIN} 
-	rm -f ${INC}/*~ ${SRC}/*~ *~
+# cleanall:
+# 	rm -rf ${OBJ} ${BIN} 
+# 	rm -f ${INC}/*~ ${SRC}/*~ *~
