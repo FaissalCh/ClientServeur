@@ -1128,6 +1128,8 @@ public class Client extends Application{
 					@Override public void run() {
 						labelNotify.setText("Plus de joueur restants, fin du tour");
 						hb.getChildren().removeAll(hb.getChildren());
+						if(timerResolution == null)
+							System.out.println("TIMER == NULL");
 						timerResolution.cancel();
 						labelTimer.setText("");
 					}

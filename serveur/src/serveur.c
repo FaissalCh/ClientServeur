@@ -35,7 +35,6 @@ int main() {
   sessionDeBase = createSession("Session_1", "");
   pthread_create(&tmp, NULL, gestionSession, sessionDeBase);
   sessionDeBase->thread = tmp;
-  //addSessionListe(&listeSessions, sessionDeBase);
 
   while(1) {
     s_client = accept(sock, (struct sockaddr *)&exp, &fromlen);

@@ -129,7 +129,6 @@ void *gestionSession(void *arg) { // Mutex sur la session ?
     printf("[GESTIONNAIRE] Fin de la phase de resolution !!\n");
 
     // Enigme suivante
-    printf("Cur enigme == %d, nbEnigme == %d\n", s->p->curEnigme, s->p->nbEnigme);
     s->p->curEnigme = (s->p->curEnigme + 1) % s->p->nbEnigme;
     printf("[Nouvelle Enigme] %d\n", s->p->curEnigme);
     s->p->enigme = s->p->tabEnigme[s->p->curEnigme];
@@ -151,7 +150,7 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
   int tAff;
   pthread_mutex_lock(&(s->mutex));  
   
-  if(jActif == NULL) { // A TESTER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEW
+  if(jActif == NULL) { 
     sprintf(buf, "FINRESO/\n");
     sendToAllActif(buf, s->liste, NULL, 1);
     pthread_mutex_unlock(&(s->mutex));
@@ -201,7 +200,7 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
       printf("[Attente affichage] %d\n", tAff);
       sleep(tAff); ///////////////////////////////////////////////////////// LE TEMPS DE FAIRE L'AFFICHAGE DANS LE CLIENT
     } else { // Mauvaise solution
-      printf("[Debug] test solution REJETE\n");
+      printf("[Debug] solution REJETE\n");
       jActif->actif = 0;
       jActif->enchere = -1;
       jActif = getNewJoueurActif(s);
