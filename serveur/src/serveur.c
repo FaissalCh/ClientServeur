@@ -12,17 +12,11 @@
 #include <gestion_session.h>
 #include <gestion_client.h>
 
-/* void test(Session *s) { */
-/*   if(solutionAccepte("BBBHRDRHRD", s, NULL)) */
-/*     printf("Good\n"); */
-/*   else */
-/*     printf("Pas good\n"); */
 
-/* } */
 
 //pour reinit la session de base si plus de joueurs
 Session *sessionDeBase; 
-pthread_mutex_t mutexSessionBase = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexAllSession= PTHREAD_MUTEX_INITIALIZER;
 
 int main() {
   

@@ -43,9 +43,8 @@ import javafx.util.Duration;
 
 public class Client extends Application{
 
-	Socket c = new Socket();
-	InetSocketAddress localhost = new InetSocketAddress(2016);
-	boolean connected = false;
+	Socket c;
+	InetSocketAddress localhost;
 	String userName, userActif, pw, session;
 	Stage stagePrinc = new Stage();
 	String bilan;
@@ -66,7 +65,7 @@ public class Client extends Application{
 	ImageView greenPawn_img = new ImageView();
 	ImageView cible_img = new ImageView();
 
-	VBox layout = new VBox(70);
+	VBox layout = new VBox(60);
 	GridPane grid = new GridPane();   //Plateau avec cases + murs
 	BorderPane bp = new BorderPane();  //Plateau + bouttons
 	HBox hb = new HBox(10);
@@ -90,7 +89,7 @@ public class Client extends Application{
 	VBox chat = new VBox(15);
 
 	final Popup popup = new Popup(); 
-	Text textPopup = new Text("Phase de reflexion");
+	Text textPopup = new Text();
 
 
 	public static void main(String[] args) {
@@ -101,8 +100,9 @@ public class Client extends Application{
 	@Override
 	public void start(Stage stage) throws Exception{
 
-		Button buttonConnect, buttonPrivateParty, sendMessageButton, buttonCreateSession;
-		labelNotify.setFont(new Font("Arial", 14));
+		Button buttonAdIP, buttonConnect, buttonPrivateParty, sendMessageButton, buttonCreateSession;
+
+		labelNotify.setFont(new Font("Arial", 18));
 		labelNotify.setTextFill(Color.web("#6600ff"));
 		labelTimer.setFont(new Font("Arial", 14));
 		labelTimer.setTextFill(Color.web("#ff0000"));
@@ -122,6 +122,10 @@ public class Client extends Application{
 		labelEnchere.setTranslateY(4);
 		labelSolution.setTranslateY(4);
 
+		/*On choisit l'@IP a laquelle se connecter*/
+		stage.setTitle("Which IP @");
+		buttonAdIP = new Button();
+		buttonAdIP.setText("Send IP@");
 
 		/************On se connecte************/
 		stage.setTitle("ConnexionWindow");
@@ -134,19 +138,32 @@ public class Client extends Application{
 		sendMessageButton = new Button();
 		sendMessageButton.setText("Send A Message");
 		Stage stageConnexion = new Stage();
+		Stage stageAdIP = new Stage();
+
+		Label labelAdIP = new Label("Enter the IP@ to be connected with : ");
+		labelAdIP.setFont(Font.font("Verdana", FontWeight.BOLD, 14));
+		TextField textAdIP = new TextField();
+		textAdIP.appendText("127.0.0.1");
+		Label labelErrorIP = new Label();
+		labelErrorIP.setTextFill(Color.web("#ff0000"));
 
 		Label labelName = new Label("Your name : ");
 		TextField textFieldName = new TextField();
+		Label labelErrorName = new Label();
+
 		Label labelNamePrivate = new Label("Login : ");
 		TextField textFieldLogin = new TextField();
 		Label labelError = new Label();
 		labelError.setTranslateX(20);
+		labelError.setTextFill(Color.web("#ff0000"));
 		Label labelErrorCreate = new Label();
 		labelErrorCreate.setTranslateX(20);
+		labelErrorCreate.setTextFill(Color.web("#ff0000"));
 		Label labelPasswordPrivate = new Label("Password :");
 		TextField textFieldPassword = new PasswordField();
 		Label labelErrorEntering = new Label();
 		labelErrorEntering.setTextFill(Color.web("#ff0000"));
+
 		Label labelSession = new Label("Name of the session : ");
 		TextField textFieldSession = new TextField();
 		Label labelcreateSession = new Label("Session to create : ");
@@ -155,7 +172,13 @@ public class Client extends Application{
 		TextField textFieldLoginSession = new TextField();
 		Label labelPwSession = new Label("Password : ");
 		TextField textFieldPwSession = new PasswordField();
+		Label labelNomSession = new Label();
 
+		HBox layoutAdIP = new HBox(5);
+		layoutAdIP.getChildren().addAll(labelAdIP, textAdIP, buttonAdIP);
+		VBox layoutAdIPBis = new VBox(10);
+		layoutAdIPBis.getChildren().addAll(layoutAdIP, labelErrorIP);
+		layoutAdIPBis.setPadding(new Insets(45, 0, 0, 20));
 
 		HBox layoutCreateSession1 = new HBox(5);
 		layoutCreateSession1.getChildren().addAll(labelcreateSession, textFieldCreateSession);
@@ -182,6 +205,10 @@ public class Client extends Application{
 		HBox layoutName = new HBox(5);
 		layoutName.getChildren().addAll(labelName, textFieldName, buttonConnect);
 		layoutName.setPadding(new Insets(30, 0, 0, 84));
+		VBox layoutNameBis = new VBox(10);
+		layoutNameBis.getChildren().addAll(layoutName, labelErrorName);
+		labelErrorName.setTranslateX(20);
+		labelErrorName.setTextFill(Color.web("#ff0000"));
 
 		VBox box1 = new VBox(10);
 		box1.getChildren().addAll(layoutCreateSession1, layoutCreateSession3, layoutCreateSession2, labelErrorCreate);
@@ -202,7 +229,7 @@ public class Client extends Application{
 		line2.setStroke(Color.web("#99bbff"));
 
 		VBox connexionBox = new VBox(40);
-		connexionBox.getChildren().addAll(layoutName, line, box1, line2, box2);
+		connexionBox.getChildren().addAll(layoutNameBis, line, box1, line2, box2);
 
 
 		popup.setX(600); popup.setY(250);
@@ -211,40 +238,60 @@ public class Client extends Application{
 		popup.getContent().addAll(textPopup);
 
 
+		buttonAdIP.setTranslateX(20);
+		buttonAdIP.setTranslateY(-3);
+		buttonAdIP.setStyle("-fx-font: 18 arial; -fx-base: #b6e7c9;");
+		buttonAdIP.setOnAction(e -> {
+			boolean prisAdresse = false;
+			String adresseIP = null;
+			if ((textAdIP.getText() != null && !textAdIP.getText().isEmpty())) {
+				adresseIP = textAdIP.getText();
+				prisAdresse = true;
+			} else {
+				labelErrorIP.setText("You have to choose an IP adress");
+			}
+			if(prisAdresse){
+				c = new Socket();
+				localhost = new InetSocketAddress(adresseIP, 2016);
+				try {
+					c.connect(localhost);
+					stageAdIP.close();
+				} catch (Exception e1) {
+					labelErrorIP.setText("Wrong adress !");
+					textAdIP.setText("");
+				}
+			}
+		});
+
+
+
 		buttonConnect.setTranslateX(20);
 		buttonConnect.setTranslateY(-3);
 		buttonConnect.setStyle("-fx-font: 18 arial; -fx-base: #b6e7c9;");
 		buttonConnect.setOnAction(e -> {
-			try {
-				if( !connected ){
-					c.connect(localhost);
-					connected = true;
-				}
-				boolean prisNom = false;
-				if ((textFieldName.getText() != null && !textFieldName.getText().isEmpty())) {
-					userName = textFieldName.getText();
-					prisNom = true;
-				} else {
-					labelName.setText("You have to choose a name");
-					labelName.setTextFill(Color.web("#ff0000"));
-				}
-				if(prisNom){
-					String retour = Tools.signalerConnexion(c, userName);    //Le cliet signal son arrive et attend le signal BIENVENU
-					if(retour.contains("BIENVENUE/")){
-						System.out.println("The Party begin now");
-						labelPseudo.setText("Pseudo : "+ userName); 
-						stageConnexion.close();
-					} else
-						try {
-							labelName.setText("Rejected by the server");
-							labelName.setTextFill(Color.web("#ff0000"));
-						} catch (Exception e1) {}
-				}
-			} catch (IOException e1) {
-				labelName.setText("Connexion error!");
-				labelName.setTextFill(Color.web("#ff0000"));
+			boolean prisNom = false;
+			if ((textFieldName.getText() != null && !textFieldName.getText().isEmpty())) {
+				userName = textFieldName.getText();
+				prisNom = true;
+			} else {
+				labelErrorName.setText("You have to choose a name");
 			}
-
+			if(prisNom){
+				String retour = null;
+				try {
+					retour = Tools.signalerConnexion(c, userName);  //Le client signal son arrive et attend le signal BIENVENU
+				} catch (Exception e2) {}    
+				if(retour.contains("BIENVENUE/")){
+					System.out.println("The Party begin now");
+					labelPseudo.setText("Pseudo : "+ userName); 
+					labelNomSession.setText("Session Public");
+					stageConnexion.close();
+				} else
+					try {
+						labelErrorName.setText(retour.split("/")[1]);
+						labelName.setText("");
+					} catch (Exception e1) {}
+			}
 		});
 
 
@@ -253,42 +300,34 @@ public class Client extends Application{
 		buttonPrivateParty.setTranslateX(20);
 		buttonPrivateParty.setStyle("-fx-font: 18 arial; -fx-base: #b6e7c9;");
 		buttonPrivateParty.setOnAction(e -> {
-			try {
-				if( !connected ){
-					c.connect(localhost);
-					connected = true;
-				}
-				boolean prisNom = false;
-				if ((textFieldLogin.getText() != null && !textFieldLogin.getText().isEmpty()) && (textFieldPassword.getText() != null && 
-						!textFieldPassword.getText().isEmpty()) && (textFieldSession.getText() != null && !textFieldSession.getText().isEmpty())) {
-					userName = textFieldLogin.getText();
-					pw = textFieldPassword.getText();
-					session = textFieldSession.getText();
-					prisNom = true;
-				} else {
-					labelError.setText("You have to choose a session, a login, and a password");
-					labelError.setTextFill(Color.web("#ff0000"));
-				}
-				if(prisNom){
-					String retour = Tools.signalerConnexionPrivee(c, session, userName, pw, false);    //Le client signal son arrive et attend le signal BIENVENU
-					if(retour.contains("BIENVENUE/")){
-						System.out.println("The Party begin now");
-						labelPseudo.setText("Pseudo : "+ userName);
-						stageConnexion.close();
-					} else
-						try {
-							labelError.setText(retour.split("/")[1]);
-							labelError.setTextFill(Color.web("#ff0000"));
-							textFieldLogin.setText("");
-							textFieldPassword.setText("");
-							textFieldSession.setText("");
-						} catch (Exception e1) {}
-				}
-			} catch (IOException e1) {
-				labelError.setText("Connexion error!");
-				labelError.setTextFill(Color.web("#ff0000"));
+			boolean prisNom = false;
+			if ((textFieldLogin.getText() != null && !textFieldLogin.getText().isEmpty()) && (textFieldPassword.getText() != null && 
+					!textFieldPassword.getText().isEmpty()) && (textFieldSession.getText() != null && !textFieldSession.getText().isEmpty())) {
+				userName = textFieldLogin.getText();
+				pw = textFieldPassword.getText();
+				session = textFieldSession.getText();
+				prisNom = true;
+			} else {
+				labelError.setText("You have to choose a session, a login, and a password");
 			}
-
+			if(prisNom){
+				String retour = null;
+				try {
+					retour = Tools.signalerConnexionPrivee(c, session, userName, pw, false); //Le client signal son arrive et attend le signal BIENVENU
+				} catch (Exception e2) {}    
+				if(retour.contains("BIENVENUE/")){
+					System.out.println("The Party begin now");
+					labelPseudo.setText("Pseudo : "+ userName);
+					labelNomSession.setText("Session " + session);
+					stageConnexion.close();
+				} else
+					try {
+						labelError.setText(retour.split("/")[1]);
+						textFieldLogin.setText("");
+						textFieldPassword.setText("");
+						textFieldSession.setText("");
+					} catch (Exception e1) {}
+			}
 		});
 
 
@@ -296,11 +335,6 @@ public class Client extends Application{
 		buttonCreateSession.setTranslateX(20);
 		buttonCreateSession.setStyle("-fx-font: 18 arial; -fx-base: #b6e7c9;");
 		buttonCreateSession.setOnAction(e -> {
-			try {
-				if( !connected ){
-					c.connect(localhost);
-					connected = true;
-				}
 				boolean prisNom = false;
 				if ((textFieldCreateSession.getText() != null && !textFieldCreateSession.getText().isEmpty()) && (textFieldLoginSession.getText() != null && 
 						!textFieldLoginSession.getText().isEmpty()) && (textFieldPwSession.getText() != null && !textFieldPwSession.getText().isEmpty())) {
@@ -310,28 +344,25 @@ public class Client extends Application{
 					prisNom = true;
 				} else {
 					labelErrorCreate.setText("You have to choose a session, a login, and a password");
-					labelErrorCreate.setTextFill(Color.web("#ff0000"));
 				}
 				if(prisNom){
-					String retour = Tools.signalerConnexionPrivee(c, session, userName, pw, true);    //Le client signal son arrive et attend le signal BIENVENU
-					if(retour.contains("BIENVENUE/")){
+					String retour = null;
+					try {
+						retour = Tools.signalerConnexionPrivee(c, session, userName, pw, true);
+					} catch (Exception e2) {}    
+					if(retour.contains("BIENVENUE/")){   //Le client signal son arrive et attend le signal BIENVENU
 						System.out.println("The Party begin now");
 						labelPseudo.setText("Pseudo : "+ userName);
+						labelNomSession.setText("Session " + session);
 						stageConnexion.close();
 					} else
 						try {
 							labelErrorCreate.setText(retour.split("/")[1]);
-							labelErrorCreate.setTextFill(Color.web("#ff0000"));
 							textFieldCreateSession.setText("");
 							textFieldLoginSession.setText("");
 							textFieldPwSession.setText("");
 						} catch (Exception e1) {}
 				}
-			} catch (IOException e1) {
-				labelErrorCreate.setText("Connexion error!");
-				labelErrorCreate.setTextFill(Color.web("#ff0000"));
-			}
-
 		});
 
 
@@ -349,10 +380,13 @@ public class Client extends Application{
 		});
 
 
+		stageAdIP.setTitle("@ IP Window");
+		stageAdIP.setResizable(false);
+		Scene sceneAdIP = new Scene(layoutAdIPBis, 650, 120);
 
 		stageConnexion.setTitle("Connexion Window");
 		stageConnexion.setResizable(false);
-		Scene sceneConnexion = new Scene(connexionBox, 600, 500);
+		Scene sceneConnexion = new Scene(connexionBox, 600, 530);
 
 		/*Obligatoire pour display stage2*/
 		stage.setScene(sceneConnexion);
@@ -366,6 +400,18 @@ public class Client extends Application{
 			} catch (Exception e1) {}
 			System.out.println("U're disconnected");
 		});
+		
+		stageAdIP.setScene(sceneAdIP);
+		stageAdIP.setOnCloseRequest(e -> {  //Si on ferme la fenetre tout s arrete
+			try {
+				stageAdIP.close();
+				c.close();
+				System.exit(0);
+			} catch (Exception e1) {}
+			System.out.println("U're disconnected");
+		});
+		
+		stageAdIP.showAndWait();
 		stageConnexion.showAndWait();
 
 
@@ -396,22 +442,25 @@ public class Client extends Application{
 		});
 
 
-		/*******Recevoir les messages successifs du serveur*******/
+		/*******Agencement de l'interface*******/
 		buttonSubmit = new Button();
 		buttonSubmit.setText("Submit");
-
 
 		labelBilan.setTextFill(Color.web("#1a53ff"));
 		labelBilan.setFont(new Font("Arial", 15));
 		labelBilan.setTranslateY(20);
-		
-		VBox hbNotify = new VBox(40);
+
+		labelNomSession.setFont(Font.font("Verdana", FontWeight.BOLD, 16));
+		labelNomSession.setTextFill(Color.web("6b6b47"));
+		labelNomSession.setTranslateX(40);
+
+		VBox hbNotify = new VBox(30);
 		hbNotify.getChildren().addAll(labelPseudo, labelScore, labelNbJoueur);
 		hbNotify.setTranslateX(20);
 		HBox disconnectBox = new HBox(20);
 		disconnectBox.getChildren().addAll(buttonDisconnect,labelErrorEntering);
 		disconnectBox.setPadding(new Insets(0, 0, 0, 80));
-		layout.getChildren().addAll(disconnectBox, hb, hbNotify, labelTimer, labelNotify, labelBilan);
+		layout.getChildren().addAll(disconnectBox, labelNomSession, hb, hbNotify, labelTimer, labelNotify, labelBilan);
 		layout.setPadding(new Insets(10, 0, 0, 5));
 
 
@@ -513,12 +562,13 @@ public class Client extends Application{
 			} catch (Exception e1) {}
 			System.out.println("U're disconnected");
 		});
+		
 		stagePrinc.showAndWait();
-
+		
 	}
 
 
-	
+
 	/*************Methode a lancer pour MAJ de l'interface*****************/
 	public void process() throws IOException{
 
@@ -529,19 +579,26 @@ public class Client extends Application{
 			@SuppressWarnings("resource")
 			InputStreamLiner isl = new InputStreamLiner(is);
 			String line = isl.readLine(InputStreamLiner.UNIX);
-			System.out.println("[RECEIVE] '"+line+"'");
-			
+
+			System.out.println("[Receive] = "+line);
 
 			if(line.contains("SESSION")){    //Debut SESSION
 
 				Platform.runLater(new Runnable(){
 					@Override public void run() {
+
+						textPopup.setText("Début d'une nouvelle partie");
+						popup.show(stagePrinc);
+						PauseTransition delay = new PauseTransition(Duration.seconds(3));
+						delay.setOnFinished( event -> textPopup.setText("") );
+						delay.play();
+
 						cases = new EtatCase[16][16];
 						try {
 							cases = Tools.getPlateau(line.split("/")[1]);
 						} catch (NumberFormatException e2) {}
 						catch (IOException e2) {}  //Construit le plateau
-						
+
 
 						Image image = new Image("murs/case.png");
 
@@ -625,7 +682,7 @@ public class Client extends Application{
 						grid.getChildren().removeAll(grid.getChildren());
 						grid.getChildren().addAll(briks);
 
-						
+
 						HBox top = new HBox(5);
 						top.getChildren().addAll(grid, layout, chat);
 
@@ -744,6 +801,7 @@ public class Client extends Application{
 								}, 0, 1000);
 
 						popup.show(stagePrinc);
+						textPopup.setText("Phase de reflexion");
 						PauseTransition delay = new PauseTransition(Duration.seconds(3));
 						delay.setOnFinished( event -> textPopup.setText("") );
 						delay.play();
@@ -946,8 +1004,7 @@ public class Client extends Application{
 								k++;
 							}
 
-							System.out.println("solution : " + solution + " et sol : " + sol);
-							
+
 							if(solution.charAt(1) == 'H')
 								y = Integer.valueOf("-"+sol);
 							if(solution.charAt(1) == 'B')
@@ -981,8 +1038,7 @@ public class Client extends Application{
 							x = 0;
 							y = 0;
 						}
-						
-						System.out.println("TAILLE : " + seqT.size());
+
 
 						map.put(redPawn_img, listRed);
 						map.put(bluePawn_img, listBlue);
@@ -1110,7 +1166,7 @@ public class Client extends Application{
 				if(line.contains("DECONNEXION")){
 					Platform.runLater(new Runnable(){
 						@Override public void run() {
-							labelNotify.setText("Le joueur : " + line.split("/")[1] + " a quitté la partie");
+							labelNotify.setText("Le joueur " + line.split("/")[1] + " a quitté la partie");
 							nbPlayers -= 1;
 							labelNbJoueur.setText("Number of players : " + nbPlayers);
 						}
@@ -1120,7 +1176,7 @@ public class Client extends Application{
 				else if(line.contains("CONNECTE")){
 					Platform.runLater(new Runnable(){
 						@Override public void run() {
-							labelNotify.setText("Le joueur : " + line.split("/")[1] + " a rejoint la partie");
+							labelNotify.setText("Le joueur " + line.split("/")[1] + " a rejoint la partie");
 							nbPlayers += 1;
 							labelNbJoueur.setText("Number of players : " + nbPlayers);
 						}

@@ -26,19 +26,22 @@ public class Serveur{
 		OutputStream os = c.getOutputStream();
 		BufferedWriter br = new BufferedWriter(new OutputStreamWriter(os));
 
-		if( !line.contains("CONNEXION/"))
+		/*if( !line.contains("CONNEXION/")){
 			System.out.println("Serveur   ------>   PB");
-		else{
-			br.write("BIENVENUE/" + userName + "/\n");
+			br.write("Error/" + "Login deja pris" + "/\n");
 			br.flush();
 		}
+		else{*/
+			br.write("BIENVENUE/" + userName + "/\n");
+			br.flush();
+		//}
 
 		//Les murs
 		br.write("SESSION/(3,4,H)(3,4,G)(12,6,H)(0,0,B)(14,12,H)(14,12,B)(15,14,D)/\n");
 		br.flush();
 		System.out.println("SESSION envoye!!");
 
-		Thread.sleep(500);
+		Thread.sleep(5000);
 
 		//Les pions et la cible + bilan
 		br.write("TOUR/(6,5,12,13,11,2,10,7,6,7,R)/1(saucisse, 0)(brouette, 0)(user2, 0)/\n");
@@ -58,7 +61,7 @@ public class Serveur{
 		Thread.sleep(2000);
 
 		//Notification
-		br.write("SORT/toto/\n");
+		br.write("DECONNEXION/toto/\n");
 		br.flush();
 		System.out.println("USER 4 SENT");
 
@@ -105,7 +108,7 @@ public class Serveur{
 
 		//Envoie la sol
 		System.out.println("SEND SASOL ----->");
-		br.write("SASOLUTION/m/RBVG/\n");
+		br.write("SASOLUTION/m/VGRB/\n");
 		br.flush();
 
 		//Lit la sol finale

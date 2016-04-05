@@ -79,7 +79,7 @@ public class Tools {
 		@SuppressWarnings("resource")
 		InputStreamLiner isl = new InputStreamLiner(is);
 		String line = isl.readLine(InputStreamLiner.UNIX);
-
+		
 		return line;
 	}
 
