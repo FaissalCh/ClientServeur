@@ -518,7 +518,7 @@ public class Client extends Application{
 	}
 
 
-
+	
 	/*************Methode a lancer pour MAJ de l'interface*****************/
 	public void process() throws IOException{
 
@@ -529,7 +529,8 @@ public class Client extends Application{
 			@SuppressWarnings("resource")
 			InputStreamLiner isl = new InputStreamLiner(is);
 			String line = isl.readLine(InputStreamLiner.UNIX);
-
+			System.out.println("[RECEIVE] '"+line+"'");
+			
 
 			if(line.contains("SESSION")){    //Debut SESSION
 

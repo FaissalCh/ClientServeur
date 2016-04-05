@@ -354,7 +354,7 @@ void trouve(Session *s, Joueur *myJoueur) {
 
 void sort(ListeJoueurs *liste, Joueur *myJoueur) {
   char buf[TBUF];
-  sprintf(buf, "SORTI/%s/\n", myJoueur->pseudo);    
+  sprintf(buf, "DECONNEXION/%s/\n", myJoueur->pseudo);    
   suppJoueurListe(liste, myJoueur);
   detruire_joueur(myJoueur);
   sendToAll(buf, liste, NULL, 1); 
