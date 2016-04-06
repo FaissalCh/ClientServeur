@@ -1065,6 +1065,23 @@ public class Client extends Application{
 						if(userName.equals(userActif)){
 							hb.getChildren().removeAll(hb.getChildren());
 							hb.getChildren().addAll(labelSolution, textSolution, buttonSubmit);
+							tempsResolution = 60;
+							/*Demarage du timer pour la phase de resolution*/
+							timerResolution = new Timer();
+							timerResolution.schedule(
+									new TimerTask() {
+
+										@Override
+										public void run() {
+											Platform.runLater(new Runnable(){
+												@Override public void run() {
+													labelTimer.setText("Temps restant : " + (tempsResolution/60) + " min, " + (tempsResolution%60) + " sec");
+													if(tempsResolution > 0)
+														tempsResolution--;
+												}
+											});
+										}
+									}, 0, 1000);
 						}
 					}
 				});

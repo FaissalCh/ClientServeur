@@ -73,9 +73,9 @@ Plateau *getPlateau(int nb) {
       res->tabEnigme[j].robots[i].col = robots[i].col;
     }
     res->tabEnigme[j].cible = getCible(cibleC);
-    res->tabEnigme[j].enigmeString = enigmeToString(&(res->tabEnigme[j]));
     col = charToCol(colRobot[0]);
     res->tabEnigme[j].colRobot = col;
+    res->tabEnigme[j].enigmeString = enigmeToString(&(res->tabEnigme[j]));
   }
 
   res->curEnigme = 0;
