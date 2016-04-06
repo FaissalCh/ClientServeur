@@ -83,7 +83,7 @@ public class Client extends Application{
 	Label labelNbMoves = new Label("Enter the number of moves :");
 	Label labelEnchere = new Label("Make a bid :");
 	TextField textEnchere = new TextField();
-	Label labelNbJoueur = new Label("Number of players : " + nbPlayers);
+	Label labelNbJoueur = new Label("[Number of players] : " + nbPlayers);
 	Label labelTimer = new Label();
 	Label labelEnchereCourante = new Label();
 	int tempsReflexion, tempsEnchere, tempsResolution;
@@ -332,7 +332,7 @@ public class Client extends Application{
 				} catch (Exception e2) {}    
 				if(retour.startsWith("BIENVENUE/")){
 					System.out.println("The Party begin now");
-					labelPseudo.setText("Pseudo : ["+ userName + "]"); 
+					labelPseudo.setText("[Pseudo] : "+ userName); 
 					labelNomSession.setText("Session Public");
 					stageConnexion.close();
 				} else
@@ -460,7 +460,7 @@ public class Client extends Application{
 			try {
 				Tools.sendMessage(c, userName, chatText.getText());
 			} catch (Exception e1) {}
-			chatBox.appendText("(" + dateFormat.format(date) + ")" + "<" + userName + "> : " + chatText.getText() + "\n");
+			chatBox.appendText("[" + dateFormat.format(date) + "]" + "<" + userName + "> : " + chatText.getText() + "\n");
 			chatText.setText("");
 		});
 
@@ -778,7 +778,7 @@ public class Client extends Application{
 						}
 
 
-						labelScore.setText("Score : " + score);
+						labelScore.setText("[Score] : " + score);
 						grid.getChildren().removeAll(grid.getChildren());
 						grid.getChildren().addAll(briks);
 
@@ -877,12 +877,12 @@ public class Client extends Application{
 
 
 						bilan = line.split("/")[2];
-						bilan = "Tour ----> " + bilan.charAt(0) + "\n            " + bilan.substring(1, bilan.length());
+						bilan = "[Tour] = " + bilan.charAt(0) + "\n[Scores] = " + bilan.substring(1, bilan.length());
 
-						labelBilan.setText("BILAN : " + bilan);
+						labelBilan.setText(bilan);
 						nbPlayers= bilan.split("\\(").length - 1;
 
-						labelNbJoueur.setText("Number of players : " + nbPlayers);
+						labelNbJoueur.setText("[Number of players] : " + nbPlayers);
 						hb.getChildren().removeAll(hb.getChildren());
 						hb.getChildren().addAll(labelNbMoves, textSolution, buttonSubmit);
 
@@ -896,7 +896,7 @@ public class Client extends Application{
 									public void run() {
 										Platform.runLater(new Runnable(){
 											@Override public void run() {
-												labelTimer.setText("Temps restant : " + (tempsReflexion/60) + " min, " + (tempsReflexion%60) + " sec");
+												labelTimer.setText("[Temps restant] = " + (tempsReflexion/60) + " min, " + (tempsReflexion%60) + " sec");
 												if(tempsReflexion > 0)
 													tempsReflexion--;
 											}
@@ -926,7 +926,7 @@ public class Client extends Application{
 							public void run() {
 								Platform.runLater(new Runnable(){
 									@Override public void run() {
-										labelTimer.setText("Temps restant : " + (tempsEnchere/60) + " min, " + (tempsEnchere%60) + " sec");
+										labelTimer.setText("[Temps restant] = " + (tempsEnchere/60) + " min, " + (tempsEnchere%60) + " sec");
 										if(tempsEnchere > 0)
 											tempsEnchere--;
 									}
@@ -953,7 +953,7 @@ public class Client extends Application{
 							labelNotify.setText("Je pense avoir trouvé");
 							hb.getChildren().removeAll(hb.getChildren());
 							hb.getChildren().addAll(labelEnchere, textEnchere, buttonSubmit);
-							labelEnchereCourante.setText("Dernière enchere : " + (int)enchereCourante);
+							labelEnchereCourante.setText("[Derniere enchere] = " + (int)enchereCourante);
 						}
 					});
 				}
@@ -1010,7 +1010,7 @@ public class Client extends Application{
 										public void run() {
 											Platform.runLater(new Runnable(){
 												@Override public void run() {
-													labelTimer.setText("Temps restant : " + (tempsResolution/60) + " min, " + (tempsResolution%60) + " sec");
+													labelTimer.setText("[Temps restant] = " + (tempsResolution/60) + " min, " + (tempsResolution%60) + " sec");
 													if(tempsResolution > 0)
 														tempsResolution--;
 												}
@@ -1036,7 +1036,7 @@ public class Client extends Application{
 				Platform.runLater(new Runnable(){
 					@Override public void run() {
 						labelNotify.setText("Validation de mon enchere");
-						labelEnchereCourante.setText("Dernière enchere : " + (int)enchereCourante);
+						labelEnchereCourante.setText("[Derniere enchere] = " + (int)enchereCourante);
 					}
 				});
 			}
@@ -1075,7 +1075,7 @@ public class Client extends Application{
 										public void run() {
 											Platform.runLater(new Runnable(){
 												@Override public void run() {
-													labelTimer.setText("Temps restant : " + (tempsResolution/60) + " min, " + (tempsResolution%60) + " sec");
+													labelTimer.setText("[Temps restant] = " + (tempsResolution/60) + " min, " + (tempsResolution%60) + " sec");
 													if(tempsResolution > 0)
 														tempsResolution--;
 												}
@@ -1283,7 +1283,7 @@ public class Client extends Application{
 										public void run() {
 											Platform.runLater(new Runnable(){
 												@Override public void run() {
-													labelTimer.setText("Temps restant : " + (tempsResolution/60) + " min, " + (tempsResolution%60) + " sec");
+													labelTimer.setText("[Temps restant] =  " + (tempsResolution/60) + " min, " + (tempsResolution%60) + " sec");
 													if(tempsResolution > 0)
 														tempsResolution--;
 												}
@@ -1307,8 +1307,8 @@ public class Client extends Application{
 					@Override public void run() {
 						hb.getChildren().removeAll(hb.getChildren());
 						bilan = line.split("/")[1];
-						bilan = "Tour ----> " + bilan.charAt(0) + "\n            " + bilan.substring(1, bilan.length());
-						labelBilan.setText("BILAN : " + bilan);
+						bilan = "[Tour] = " + bilan.charAt(0) + "\n[Scores] = "+bilan.substring(1, bilan.length());
+						labelBilan.setText(bilan);
 						labelNotify.setText("");
 						score = 0;
 					}
@@ -1321,7 +1321,7 @@ public class Client extends Application{
 						@Override public void run() {
 							labelNotify.setText("Le joueur " + line.split("/")[1] + " a quitté la partie");
 							nbPlayers -= 1;
-							labelNbJoueur.setText("Number of players : " + nbPlayers);
+							labelNbJoueur.setText("[Number of players] : " + nbPlayers);
 						}
 					});
 
@@ -1340,7 +1340,7 @@ public class Client extends Application{
 						@Override public void run() {
 							System.out.println("MESSAGE : " + line);
 							Date date = new Date();
-							chatBox.appendText("(" + dateFormat.format(date) + ")" + "<" + line.split("/")[1] + "> : " + line.split("/")[2] + "\n");
+							chatBox.appendText("[" + dateFormat.format(date) + "]" + "<" + line.split("/")[1] + "> : " + line.split("/")[2] + "\n");
 						}
 					});
 				}
