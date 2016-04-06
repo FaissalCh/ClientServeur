@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
+
+// Pour le debug
 void affPlateau(Plateau *p) {
   char tab[X_PLATEAU][Y_PLATEAU];
   Enigme e = p->enigme;
@@ -47,6 +49,8 @@ void affPlateau(Plateau *p) {
 
 /* -------- Fonction de gestion de section -------- */
 
+
+// Cree un argument pour les threads de gestion client
 ArgThread *createArgThreadClient(int socket, ListeSession *listeSessions) {
   ArgThread *arg = (ArgThread *)malloc(sizeof(ArgThread));
   if(arg == NULL) {
@@ -164,7 +168,7 @@ int getSocketServeur(int port) {
   }
   
   /* Creation de la file d'attente en indiquant le nombre max de client */
-  listen(s_XTMP, 8); //////////////////////////// 20 ???
+  listen(s_XTMP, 100);
   
   return s_XTMP;
 }

@@ -13,13 +13,15 @@
 #define TBUF 512
 
 extern Session *sessionDeBase; //pour reinit la session de base si plus de joueurs
-// FAIRE MUTEXALLSESSION
+
 extern pthread_mutex_t mutexAllSession; /* Pour eviter qu'un joueur tente de se connecter a la session  
 					   pendant qu'elle soit re-cree apres sa destruction, ou pendant ce destruction, ceci arrive 
 					   lorsque le dernier joueur quitte la session on la re initialise
 					   pour eviter que les nouveaux joueurs attendent la fin du dernier tour
 					   alors qu'il n y a plus de joueur dans le cas de la session public sinon on la detruit */
 
+
+// Fonction qu'execute les threads de gestion de client
 void *gestionClient(void *argThread) {
   ArgThread *arg = (ArgThread *)argThread;
   int sock = arg->socket;
@@ -158,9 +160,8 @@ void *gestionClient(void *argThread) {
     pthread_cancel(session->thread); // Annuler le thread de gestion de la session
     if(session != sessionDeBase)
       suppSessionListe(arg->listeSession, session); // Si pas la public, on la supprime de la liste des session privees
-    //destroy_session(session); // Voir si faut pas le mettre apres
 
-    // Si sessionDeBase on le reinitialise pour pas devoir attendre la fin du tour
+    // Si sessionDeBase on le reinitialise pour pas devoir attendre la fin du tour lors des prochaines connexions
     if(session == sessionDeBase) {  // Prendre le mutex de sessionDeBase ou je sais pas quoi 
       printf("[Re-init session public]\n");
       sessionDeBase = createSession("Session_1", "");
@@ -180,18 +181,7 @@ void *gestionClient(void *argThread) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+// Fonction qui indique la connexion d'un joueur aux autres joueurs
 void indiquerConnexion(Session *session, Joueur *myJoueur) {
   char buf[TBUF];
   char *plateau;
@@ -207,11 +197,8 @@ void indiquerConnexion(Session *session, Joueur *myJoueur) {
 
 
 
-
-
-
-
 // CHAT/user/msg/
+// Fonction de gestion du chat
 void chat(Session *s, Joueur *myJoueur) {
   char buf[TBUF];
   char *message;
@@ -226,7 +213,7 @@ void chat(Session *s, Joueur *myJoueur) {
 }
 
 
-
+// Fonction de gestion de la phase de resolution
 void resolution(Session *s, Joueur *myJoueur) {
   char *deplacement;
 
@@ -263,10 +250,7 @@ void resolution(Session *s, Joueur *myJoueur) {
 }
 
 
-
-
-///////////////////////////////////////////////////////////////////////////::
-
+// Fonction de gestion de la phase d'enchere
 void enchere(Session *s, Joueur *myJoueur) {
   int nbCoups;
   char *otherUser; // pseudo du joueur qui a deja propose la meme enchere
@@ -313,6 +297,7 @@ void enchere(Session *s, Joueur *myJoueur) {
 }
 
 
+// return le joueur ayant deja propose cette valeur d'enchere
 char *nbCoupsDejaPropose(int nbCoups, Joueur *myJoueur, Session *s) {
   Joueur *j = (s->liste)->j;
   while(j != NULL) {
@@ -324,6 +309,8 @@ char *nbCoupsDejaPropose(int nbCoups, Joueur *myJoueur, Session *s) {
 }
 
 
+
+// Fonction de gestion lors de la phase de reflexion
 void trouve(Session *s, Joueur *myJoueur) {
   int nbCoup;
   char buf[TBUF];
@@ -360,6 +347,7 @@ void trouve(Session *s, Joueur *myJoueur) {
 
 
 
+// Fonction de gestion de deconnexion
 void sort(ListeJoueurs *liste, Joueur *myJoueur) {
   char buf[TBUF];
   sprintf(buf, "DECONNEXION/%s/\n", myJoueur->pseudo);    
@@ -369,8 +357,7 @@ void sort(ListeJoueurs *liste, Joueur *myJoueur) {
 }
 
 
-
-/* Faudra gerer si plusieurs joueurs ont le meme nom */
+// Fonction de gestion lors de la connexion
 Joueur *connex(int sock, ListeJoueurs *liste) {
   char buf[TBUF];
   char *pseudo = strtok(NULL, "/");
@@ -388,14 +375,23 @@ Joueur *connex(int sock, ListeJoueurs *liste) {
   /* Validation de la connexion a user */
   sprintf(buf, "BIENVENUE/%s/\n", pseudoJoueur(myJoueur));
   sendTo(buf, liste, myJoueur, 1);
+
+  
+  ///
+  sprintf(buf, "COMPATIBLEAFFICHAGE/\n");
+  sendTo(buf, liste, myJoueur, 1); // Pour dire que le serveur effectue un temps d'affichage
+
+  
   /* Signalement connexion user aux autres joueurs */
   sprintf(buf, "CONNECTE/%s/\n", pseudoJoueur(myJoueur));
   sendToAll(buf, liste, myJoueur, 1); // All sauf myJoueur
+
   return myJoueur;
 }
 
 
 
+// Fonction de gestion lors de la creation d'une nouvelle session
 Session *creerSession(ListeSession *l, Joueur *myJoueur) {
   char *nomSession = strtok(NULL, "/");
   char tmp[] = "";

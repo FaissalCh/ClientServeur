@@ -26,8 +26,7 @@ int joueurAScoreObjectif(Session *s) {
 }
 
 
-// Peut etre choisir nouveau plateau
-// Fonction rqui réinitialise une session (nbTour = 0 et les score = 0)
+// Fonction qui réinitialise une session (nbTour = 0 et les score = 0)
 void reinit(Session *s) { // Mutex de la liste deja prit
   s->nbTour = 0;
   Joueur *j = (s->liste)->j; 
@@ -248,28 +247,6 @@ Joueur *getNewJoueurActif(Session *s) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Initialise les valeurs des joueurs avant la phase d'enchere
 void setEnchereToInit(Session *s) {
   /* Initialise la valeur d'enchere (meme des joueurs qui jouent pas encore, mais pas grave) */
@@ -290,8 +267,7 @@ void initEnchere(Session *s) {
 }
 
 
-// Apparament parfois retourne le mauvais joueur (plus maintenant)
-// Gerer cas ou joueurs a pas fait d'enchere (c'est bon)
+// Fonction de gestion de la fin de la phase d'enchere
 Joueur *terminerEnchere(Session *s) { // Return le joueur qui a fait l'enchere minimal
   Joueur *jActif = NULL;
   int resMin = -1;

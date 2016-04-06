@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-/* Joueurs */
+
 /* ---------------- Fonction sur les joueurs ------------- */
 Joueur *create_joueur(char *pseudo, int socket) {
   Joueur *j_tmp = (Joueur *)malloc(sizeof(Joueur));
@@ -99,6 +99,7 @@ int suppJoueurListe(ListeJoueurs *l, Joueur *j) {
 
 
 // Prendre lock sur liste avant
+// Indique si un joueur de meme nom est deja present
 int pseudo_deja_present(ListeJoueurs *l, char *pseudo) {
   Joueur *cur = l->j;
   while(cur != NULL) {

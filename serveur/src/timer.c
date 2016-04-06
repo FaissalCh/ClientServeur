@@ -1,8 +1,7 @@
 #include <timer.h>
 
 /* ----------- Mettre dans fichier timer.(c|h) -------------------- */
-// Signal la condition proteger par mut au bout de temps seconde
-// Faudrait detruire le thread si on se debloque avant qu'il se termine
+// Signal la condition proteger par mutex au bout de temps seconde
 void timer(pthread_t *pt, int temps, int *flag, pthread_cond_t *cond, pthread_mutex_t *mut) {
   ArgTimer *at = (ArgTimer*)malloc(sizeof(ArgTimer));
   if(at == NULL) {
@@ -17,7 +16,6 @@ void timer(pthread_t *pt, int temps, int *flag, pthread_cond_t *cond, pthread_mu
 }
 
 
-// Peut etre annuler le thread si le temps un joueur a fait une requete dans gestion_session phase reflexion
 // Signal la condition 
 void *timer_thread(void *arg) {
   ArgTimer *at = (ArgTimer *)arg;

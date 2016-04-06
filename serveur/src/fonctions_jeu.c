@@ -10,8 +10,8 @@
 // Peut etre faire getPlateau.c
 
 
-// A mettre dans .h !!!!!!!!!
-Plateau *getPlateau(int nb) { // A free
+// Retourne le plateau numero nb
+Plateau *getPlateau(int nb) { 
   printf("Chargement du plateau %d\n", nb);
   char buf[T_BUF];
   int i, j;
@@ -142,7 +142,7 @@ char *mursToString(Mur *murs, int nbMurs) { // A free
 }
 
 
-Mur *getMurs(char *c, int *nb) { // A free
+Mur *getMurs(char *c, int *nb) {
   int i;
   *nb = getNbMurs(c);
   Mur *tabMur = (Mur *)malloc(*nb * sizeof(Mur));
@@ -163,20 +163,20 @@ Mur *getMurs(char *c, int *nb) { // A free
 
 
 
-Cible getCible(char *c) {// Faux
+Cible getCible(char *c) {
   Cible cible;
   cible.x = atoi(c); 
   c = nextVirgule(c);
   cible.y = atoi(c);
   return cible;
 }
-void setCible(char *c, Cible *cible) {// Faux
+void setCible(char *c, Cible *cible) {
   cible->x = atoi(c); 
   c = nextVirgule(c);
   cible->y = atoi(c);
 }
 
-Robot *getRobots(char *c) { // Faux
+Robot *getRobots(char *c) { 
   int i;
   Robot *robots = (Robot *)malloc(NB_ROBOTS*sizeof(Robot));
   if(robots == NULL) {perror("malloc");exit(1);}
@@ -217,6 +217,7 @@ int getNbMurs(char *murs) {
 }
 
 
+// Indique si une solution est bonne
 int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup, int *nbDep) {
   Plateau *plateau = s->p;
   Deplacement d;
@@ -248,12 +249,12 @@ int solutionAccepte(char *sol, Session *s, Joueur *myJoueur, int *nbCoup, int *n
 }
 
 
+// Effectue les deplacement
 void deplacement(Plateau *p, Deplacement *d, Robot *r, int *nbCoup) {
   Direction dir = d->dir;
   int *champ = (dir == H || dir == B) ? &r->y : &r->x;
   int incr = (dir == H || dir == G) ? -1 : 1;
   while(!isObstacle(p, r->x, r->y, dir)) {
-    // If bon robot sur la cible break !!!!!!!!!!!!!!!!!!!!!!!!!
     if(r->x == p->enigme.cible.x && r->y == p->enigme.cible.y && p->enigme.colRobot == r->col)
       break;
     (*nbCoup)++;
@@ -261,7 +262,9 @@ void deplacement(Plateau *p, Deplacement *d, Robot *r, int *nbCoup) {
   }    
 }
 
-int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
+
+// Indique si se trouve un obstacle vers la case voulu
+int isObstacle(Plateau *p, int x, int y, Direction d) { 
   Mur *murs;
   int nbMurs;
   int i;
@@ -283,7 +286,7 @@ int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
     if(murs[i].x == x && murs[i].y == y && murs[i].d == d) {
       return 1;
     }
-    if(murs[i].x == xSym && murs[i].y == ySym && murs[i].d == dSym) {// Verifier 
+    if(murs[i].x == xSym && murs[i].y == ySym && murs[i].d == dSym) {// Symetrique 
       return 1;
     }
   }
@@ -301,8 +304,8 @@ int isObstacle(Plateau *p, int x, int y, Direction d) { // OK ?
   return 0;
 }
 
-// Verifier retourne bien copie
-Robot *getRobot(Robot *robots, Couleur col) { // Faire en set
+
+Robot *getRobot(Robot *robots, Couleur col) { 
   int i;
   Robot *res;
   for(i=0 ; i<NB_ROBOTS ; i++) {
@@ -315,7 +318,7 @@ Robot *getRobot(Robot *robots, Couleur col) { // Faire en set
 }
 
 
-Deplacements *getDeplacements(char *sol) { // OK ?
+Deplacements *getDeplacements(char *sol) {
   char col, dir;
   int i;
   int cpt = 0;
@@ -339,8 +342,8 @@ Deplacements *getDeplacements(char *sol) { // OK ?
 }
 
 
-// Mettre dans session.(c|h)
-char *getBilanSession(Session *s, int withLock) { // OK ?
+// Return le bilan d'une session
+char *getBilanSession(Session *s, int withLock) {
   // mutex session, pas besoin 
   int nbTour = s->nbTour;
   ListeJoueurs *l = s->liste;
@@ -364,7 +367,7 @@ char *getBilanSession(Session *s, int withLock) { // OK ?
 }
 
 
-Couleur getCol(char c) { // OK ?
+Couleur getCol(char c) { 
   if(c == 'R')
     return Rouge;
   else if(c == 'V')
@@ -375,7 +378,7 @@ Couleur getCol(char c) { // OK ?
     return Jaune;
 }
 
-Direction getDir(char d) { // OK ?
+Direction getDir(char d) {
   if(d == 'H')
     return H;
   else if(d == 'B')
@@ -387,7 +390,7 @@ Direction getDir(char d) { // OK ?
 }
 
 ////////////////////////////////////////////////////
-char directionToChar(Direction d) { // Faut free apres
+char directionToChar(Direction d) {
   switch(d) {
   case H:
     return 'H';
