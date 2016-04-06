@@ -53,6 +53,7 @@ public class Client extends Application{
 	String bilan;
 	Button buttonDisconnect, buttonSubmit;
 
+	boolean animation = false;
 	int index = 0;
 	int score = 0;
 	int nbPlayers = 1;
@@ -519,9 +520,33 @@ public class Client extends Application{
 		labelBilan.setFont(new Font("Arial", 15));
 		labelBilan.setTranslateY(20);
 
-		labelNomSession.setFont(Font.font("Verdana", FontWeight.BOLD, 16));
-		labelNomSession.setTextFill(Color.web("6b6b47"));
-		labelNomSession.setTranslateX(40);
+
+		Label labelCalculNbCoup = new Label("Test : ");
+		Label labelNbCoups = new Label("0");
+		TextField textCalculNbCoups = new TextField();
+		HBox boxCalculNbCoups = new HBox(10);
+		boxCalculNbCoups.getChildren().addAll(labelCalculNbCoup, textCalculNbCoups, labelNbCoups);
+
+
+		labelCalculNbCoup.setFont(Font.font("Verdana", FontWeight.BOLD, 16));
+		labelCalculNbCoup.setTextFill(Color.web("#6b6b47"));
+		labelCalculNbCoup.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		labelCalculNbCoup.setTextFill(Color.web("#6b6b47"));
+		labelCalculNbCoup.setTranslateY(4);
+		labelNbCoups.setTranslateY(5);
+
+		textCalculNbCoups.textProperty().addListener((ov, oldValue, newValue) -> {
+			if(!newValue.isEmpty()) {
+				newValue = newValue.toUpperCase();
+				char c = newValue.charAt(newValue.length()-1);
+				if(c != 'R' && c != 'B' && c != 'J' && c != 'V' && c != 'H' && c != 'G' && c != 'D'){
+					textCalculNbCoups.setText(oldValue.toUpperCase());
+				}
+				else
+					textCalculNbCoups.setText(newValue.toUpperCase());
+				labelNbCoups.setText(String.valueOf(newValue.length()/2));
+			}
+		});
 
 		VBox hbNotify = new VBox(30);
 		hbNotify.getChildren().addAll(labelPseudo, labelScore, labelNbJoueur);
@@ -532,7 +557,7 @@ public class Client extends Application{
 		HBox boxTimerEnchere = new HBox(30);
 		boxTimerEnchere.getChildren().addAll(labelTimer, labelEnchereCourante);
 
-		layout.getChildren().addAll(disconnectBox, labelNomSession, hb, hbNotify, boxTimerEnchere, labelNotify, labelBilan);
+		layout.getChildren().addAll(disconnectBox, boxCalculNbCoups, hb, hbNotify, boxTimerEnchere, labelNotify, labelBilan);
 		layout.setPadding(new Insets(10, 0, 0, 5));
 
 
@@ -597,7 +622,7 @@ public class Client extends Application{
 
 
 
-		stagePrinc.setTitle("Enigme");
+		stagePrinc.setTitle("Enigme : " + labelNomSession.getText());
 		stagePrinc.setScene(scene);
 
 
@@ -1054,8 +1079,8 @@ public class Client extends Application{
 				});
 			}
 
-			/*Deplacements des robots associes a la solution propsee*/
-			else if(line.startsWith("BONNE/")){
+			/*Deplacements des robots associes a la solution propsee et si on veut une animation*/
+			else if(line.startsWith("BONNE/") && animation){
 				Platform.runLater(new Runnable(){
 					@Override public void run() {
 
@@ -1286,14 +1311,14 @@ public class Client extends Application{
 				}
 				else if(line.startsWith("CONNECTE/")){
 					Platform.runLater(new Runnable(){
-							@Override public void run() {
+						@Override public void run() {
 							labelNotify.setText("Le joueur " + line.split("/")[1] + " a rejoint la partie");
 							nbPlayers += 1;
 							labelNbJoueur.setText("Number of players : " + nbPlayers);
 						}
 					});
 				}
-				else{     //ChatMessage
+				else if(line.startsWith("CHAT/")){     //ChatMessage
 					Platform.runLater(new Runnable(){
 						@Override public void run() {
 							System.out.println("MESSAGE : " + line);
@@ -1302,6 +1327,11 @@ public class Client extends Application{
 						}
 					});
 				}
+				else if(line.startsWith("COMPATIBLEAFFICHAGE/")){
+					animation = true;
+				}
+				else
+					System.out.println("SHOULD NEVER HAPPEND : " + line);
 			}
 
 		}
