@@ -185,14 +185,15 @@ void phaseResolution(Session *s, Joueur *jActif) { // Recursive
   } 
   else { // Reponse recu
     // Signalement aux clients de la solution propose
-    sprintf(buf, "SASOLUTION/%s/%s\n", jActif->pseudo, s->deplacementCur);
+    sprintf(buf, "SASOLUTION/%s/%s/\n", jActif->pseudo, s->deplacementCur);
     //sendToAll(buf, s->liste, jActif, 0); // Sauf jActif ??
     sendToAllActif(buf, s->liste, NULL, 0); // Meme jActif
     if(solutionAccepte(s->deplacementCur, s, jActif, &nbCoup, &nbDep)) {
+      printf("[DEBUG] solution accepte\n");
       jActif->actif = 0;
       jActif->enchere = -1;// Peut etre pas ici !!!!!!!, mais au debut du tour !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       jActif->score++;
-      sprintf(buf, "BONNE\n");
+      sprintf(buf, "BONNE/\n");
       sendToAllActif(buf, s->liste, NULL, 0);
       pthread_mutex_unlock(&(s->mutex));
       // USE NBCOUP
